@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
 
-namespace RequestsManagementSystem.Models
+namespace RequestsManagementSystem.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -12,5 +13,6 @@ namespace RequestsManagementSystem.Models
         {
             base.OnModelCreating(modelBuilder);
         }
+        public DbSet<Employee> Employees { get; set; }
     }
 }

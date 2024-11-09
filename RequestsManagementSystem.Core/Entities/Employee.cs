@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RequestsManagementSystem.Models.Entities
+namespace RequestsManagementSystem.Core.Entities
 {
 	public class Employee
 	{
