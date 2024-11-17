@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionStr = builder.Configuration.GetConnectionString("DefaultConnection");
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
 var ValidAudience = builder.Configuration["Jwt:Audience"];
 var ValidIssuer = builder.Configuration["Jwt:Issuer"];
 
@@ -17,6 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseSqlServer(connectionStr));
+builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
 
 // Add Authentication with JWT Bearer
 builder.Services.AddAuthentication(options =>
