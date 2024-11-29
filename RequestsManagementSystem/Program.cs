@@ -2,24 +2,26 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using RequestsManagementSystem.Models;
+using RequestsManagementSystem;
+using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Data;
+using RequestsManagementSystem.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionStr = builder.Configuration.GetConnectionString("DefaultConnection");
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
 var ValidAudience = builder.Configuration["Jwt:Audience"];
 var ValidIssuer = builder.Configuration["Jwt:Issuer"];
-// Add services to the container.
 
+// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseSqlServer(connectionStr));
-
-// Add services to the container.
+builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService,EmployeeService>();
 
 // Add Authentication with JWT Bearer
 builder.Services.AddAuthentication(options =>
@@ -40,9 +42,10 @@ builder.Services.AddAuthentication(options =>
 		ValidIssuer = ValidIssuer,
 	};
 });
+// Add swagger Authentication Option
 builder.Services.AddSwaggerGen(option =>
 {
-	option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+	option.SwaggerDoc("v1", new OpenApiInfo { Title = "RMS API", Version = "v1" });
 	option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 	{
 		In = ParameterLocation.Header,
@@ -69,7 +72,6 @@ builder.Services.AddSwaggerGen(option =>
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
