@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace RequestsManagementSystem.Services
 {
-    public class EmployeeService
+    public class EmployeeService:IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IConfiguration _configuration;
@@ -19,18 +20,31 @@ namespace RequestsManagementSystem.Services
             _configuration = configuration;
         }
 
-        public async Task<string> LoginAsync(LoginEmployeeDto loginEmployeeDto)
+        public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials
+
             var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
-                throw new UnauthorizedAccessException("Invalid credentials");
+                throw new UnauthorizedAccessException("خطأ في كلمة لسر أو كود المستخدم");
             }
 
             var token = GenerateJwtToken(employee);
-            return token;
+
+            return new LoginResultDto
+            { 
+                token= token,
+                EmployeeDto=new EmployeeDto
+                {
+                    DepartmentName=employee.DepartmentName,
+                    EmployeeId=employee.EmployeeId,
+                    EmployeeName=employee.Name,
+                },
+                message="تم تسجيل الدخول بنجاح",
+                Status=true
+            };
         }
 
         private string GenerateJwtToken(Employee employee)

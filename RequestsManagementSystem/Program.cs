@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RequestsManagementSystem;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
+using RequestsManagementSystem.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseSqlServer(connectionStr));
 builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService,EmployeeService>();
 
 // Add Authentication with JWT Bearer
 builder.Services.AddAuthentication(options =>
@@ -42,7 +45,7 @@ builder.Services.AddAuthentication(options =>
 // Add swagger Authentication Option
 builder.Services.AddSwaggerGen(option =>
 {
-	option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+	option.SwaggerDoc("v1", new OpenApiInfo { Title = "RMS API", Version = "v1" });
 	option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 	{
 		In = ParameterLocation.Header,

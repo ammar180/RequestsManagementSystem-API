@@ -4,6 +4,6 @@ namespace RequestsManagementSystem
 {
     public interface IEmployeeService
     {
-        Task<string> LoginAsync(LoginEmployeeDto loginEmployeeDto);
+        Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto);
     }
 }
