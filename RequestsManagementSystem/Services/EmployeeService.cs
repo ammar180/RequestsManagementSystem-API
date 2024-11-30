@@ -6,6 +6,7 @@ using RequestsManagementSystem.Dtos.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RequestsManagementSystem.Services
 {
@@ -46,25 +47,84 @@ namespace RequestsManagementSystem.Services
                 Status=true
             };
         }
-        public async Task<string> UpdatePasswordAsync(LoginEmployeeDto loginEmployeeDto)
+        public async Task<UpdatePasswordResultDto> UpdatePasswordAsync(UpdatePasswordEmployeeDto EmployeeDto)
         {
             // Validate employee credentials
-
-            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
+            if(EmployeeDto.EmployeeId == 0)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "ادخل كود المستخدم",
+                };
+            }
+            if (EmployeeDto.Password == null || EmployeeDto.Password == string.Empty)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "ادخل كلمه المرور",
+                };
+            }
+            if (EmployeeDto.ConfirmPassword == null || EmployeeDto.ConfirmPassword == string.Empty)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "ادخل تاكيد كلمه المرور",
+                };
+            }
+            var employee = await _employeeRepository.GetEmployeeById(EmployeeDto.EmployeeId);
 
             if (employee == null)
             {
-                throw new UnauthorizedAccessException("خطأ في كود المستخدم");
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "خطأ في كود المستخدم",
+                };
             }
-            employee.Password = loginEmployeeDto.Password;
+            string passregex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,15}$";
+            Regex regex = new Regex(passregex);
+            if(!regex.IsMatch(EmployeeDto.Password))
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "كلمه المرور ضعيفه",
+                };
+            }
+            if(EmployeeDto.Password != EmployeeDto.ConfirmPassword)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "كلمه المرور غير مطابقه",
+                };
+            }
+            employee.Password = EmployeeDto.Password;
             bool response = await _employeeRepository.UpdateAsync(employee);
             if(response == true)
             {
-                return "تم تحديث كلمه المرور بنجاح";
+                return new UpdatePasswordResultDto
+                {
+                    Status = response,
+                    message = "تم تحديث كلمه المرور بنجاح",
+                    EmployeeDto = new EmployeeDto
+                    {
+                        EmployeeName = employee.Name,
+                        EmployeeId = employee.EmployeeId,
+                        DepartmentName = employee.DepartmentName
+                    }
+                };
             }
             else
             {
-                return "حدث خطأ اثناء عمليه التحديث";
+                return new UpdatePasswordResultDto
+                {
+                    Status = response,
+                    message = "حدث خطأ اثناء عمليه تحديث كلمه المرور",
+                };
             }
         }
 
