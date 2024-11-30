@@ -61,6 +61,11 @@ public class EmployeeRepository : IEmployeeRepository
             .ToListAsync();
     }
 
+    public async Task<bool> IsManagerAsync(int employeeId)
+    {
+        return await _context.Employees.AnyAsync(e => e.ManagerId == employeeId);
+    }
+
     // Update an employee
     public async Task<bool> UpdateAsync(Employee employee)
     {

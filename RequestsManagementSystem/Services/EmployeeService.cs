@@ -128,12 +128,15 @@ namespace RequestsManagementSystem.Services
             }
         }
 
-        private string GenerateJwtToken(Employee employee)
+        private async Task<string> GenerateJwtToken(Employee employee)
         {
+            var role = await _employeeRepository.IsManagerAsync(employee.EmployeeId) ? "Manager" : "Employee";
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, employee.Name),
-                new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString()),
+                new Claim(ClaimTypes.Role,role)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));

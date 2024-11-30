@@ -9,5 +9,6 @@ namespace RequestsManagementSystem.Core.Interfaces
         Task<bool> AddAsync(Employee employee);
         Task<bool> UpdateAsync(Employee employee);
         Task<bool> DeleteAsync(int id);
+        Task<bool> IsManagerAsync(int employeeId);
     }
 }
