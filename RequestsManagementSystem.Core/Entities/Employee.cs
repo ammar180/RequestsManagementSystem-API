@@ -21,10 +21,11 @@ namespace RequestsManagementSystem.Core.Entities
         [StringLength(200)]
         public string DepartmentName { get; set; } = string.Empty;
 
+        // Navigation property for the manager
+        [ForeignKey("EmployeeId")]
         public int? ManagerId { get; set; } // Allow null for employees without a manager
 
-        // Navigation property for the manager
-        [ForeignKey("ManagerId")]
         public Employee? Manager { get; set; }
+        public ICollection<Employee> ManagerStaff { get; set; } = default!;
     }
 }
