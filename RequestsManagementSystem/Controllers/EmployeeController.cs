@@ -23,7 +23,7 @@ namespace RequestsManagementSystem.Controllers
         {
             try
             {
-              var Response= await _employeeService.LoginAsync(loginEmployeeDto);
+                var Response= await _employeeService.LoginAsync(loginEmployeeDto);
                 return Ok(Response);
             }
             catch(UnauthorizedAccessException ex)
@@ -34,6 +34,26 @@ namespace RequestsManagementSystem.Controllers
                     Status = false
                 };
                 return Unauthorized(result);
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult> UpdatePassword(LoginEmployeeDto loginEmployeeDto)
+        {
+            try
+            {
+                var Response= await _employeeService.UpdatePasswordAsync(loginEmployeeDto);
+                return Ok(Response);
+            }
+            catch(UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex);
             }
 
             catch (Exception ex)

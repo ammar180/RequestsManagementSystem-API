@@ -46,6 +46,27 @@ namespace RequestsManagementSystem.Services
                 Status=true
             };
         }
+        public async Task<string> UpdatePasswordAsync(LoginEmployeeDto loginEmployeeDto)
+        {
+            // Validate employee credentials
+
+            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
+
+            if (employee == null)
+            {
+                throw new UnauthorizedAccessException("خطأ في كود المستخدم");
+            }
+            employee.Password = loginEmployeeDto.Password;
+            bool response = await _employeeRepository.UpdateAsync(employee);
+            if(response == true)
+            {
+                return "تم تحديث كلمه المرور بنجاح";
+            }
+            else
+            {
+                return "حدث خطأ اثناء عمليه التحديث";
+            }
+        }
 
         private string GenerateJwtToken(Employee employee)
         {
