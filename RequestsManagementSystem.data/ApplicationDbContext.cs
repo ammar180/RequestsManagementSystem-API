@@ -7,17 +7,17 @@ namespace RequestsManagementSystem.Data
     {
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-			modelBuilder.Entity<Request>()
+			modelBuilder.Entity<Transaction>()
 				.Property(p => p.Title)
 				.HasConversion<int>();
-			modelBuilder.Entity<Request>()
+			modelBuilder.Entity<Transaction>()
 				.Property(p => p.Type)
 				.HasConversion<int>();
-			modelBuilder.Entity<Request>()
+			modelBuilder.Entity<Transaction>()
 				.Property(p => p.Status)
 				.HasConversion<int>();
 
-			modelBuilder.Entity<Request>()
+			modelBuilder.Entity<Transaction>()
 				.Property(p => p.Itinerary)
 				.HasConversion(
 					v => string.Join(';', v),

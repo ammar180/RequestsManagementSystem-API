@@ -1,6 +1,6 @@
 ﻿namespace RequestsManagementSystem.Core.Enums
 {
-	public enum ERequestType
+	public enum TransactionType
 	{
 		// leave reques types
 		CasualLeave,

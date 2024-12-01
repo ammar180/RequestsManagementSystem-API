@@ -1,6 +1,6 @@
 ﻿namespace RequestsManagementSystem.Core.Entities
 {
-	public enum ERequestTitle
+	public enum TransactionTitle
 	{
 		Leave,
 		Mission

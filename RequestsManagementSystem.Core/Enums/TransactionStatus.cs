@@ -1,7 +1,7 @@
 ﻿namespace RequestsManagementSystem.Core.Enums
 {
-    public enum ERequestStatus
-    {
+    public enum TransactionStatus
+	{
 		Pending,
 		Approved,
 		Rejected
