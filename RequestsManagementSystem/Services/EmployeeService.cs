@@ -132,7 +132,8 @@ namespace RequestsManagementSystem.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, employee.Name),
+				new(ClaimTypes.Name, employee.Name),
+                new(ClaimTypes.Role, employee.EmployeeRole.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
             };
 

@@ -11,7 +11,10 @@ namespace RequestsManagementSystem.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+			modelBuilder.Entity<Employee>()
+				.Property(e => e.EmployeeRole)
+				.HasConversion<int>();
+			base.OnModelCreating(modelBuilder);
         }
         public DbSet<Employee> Employees { get; set; }
     }

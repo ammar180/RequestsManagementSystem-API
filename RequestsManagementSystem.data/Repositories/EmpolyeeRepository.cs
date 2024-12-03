@@ -74,6 +74,7 @@ public class EmployeeRepository : IEmployeeRepository
             existingEmployee.Password = employee.Password;
             existingEmployee.VacationsBalance = employee.VacationsBalance;
             existingEmployee.DateOfEmployment = employee.DateOfEmployment;
+            existingEmployee.EmployeeRole = employee.EmployeeRole;
             existingEmployee.DepartmentName = employee.DepartmentName;
             existingEmployee.ManagerId = employee.ManagerId;
 
