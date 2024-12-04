@@ -25,6 +25,6 @@ namespace RequestsManagementSystem.Data
 				);
 		}
         public DbSet<Employee> Employees { get; set; } = default!;
-        public DbSet<Request> Requests { get; set; } = default!;
+        public DbSet<Transaction> Transactions { get; set; } = default!;
     }
 }
