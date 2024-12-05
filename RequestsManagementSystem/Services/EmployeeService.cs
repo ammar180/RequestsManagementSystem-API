@@ -33,10 +33,12 @@ namespace RequestsManagementSystem.Services
             }
 
             var token = GenerateJwtToken(employee);
+            var refreshToken = GenerateJwtToken(employee, true);
 
             return new LoginResultDto
             { 
                 token= token,
+                refreshToken = refreshToken,
                 EmployeeDto=new EmployeeDto
                 {
                     DepartmentName=employee.DepartmentName,
@@ -128,13 +130,13 @@ namespace RequestsManagementSystem.Services
             }
         }
 
-        private string GenerateJwtToken(Employee employee)
+        private string GenerateJwtToken(Employee employee, bool isRefreshToken = false)
         {
             var claims = new List<Claim>
             {
 				new(ClaimTypes.Name, employee.Name),
                 new(ClaimTypes.Role, employee.EmployeeRole.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
+                new(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -144,7 +146,7 @@ namespace RequestsManagementSystem.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
+                expires: isRefreshToken ? DateTime.Now.AddDays(double.Parse(_configuration["Jwt:refreshExpiresInDayes"]!)) : DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
                 signingCredentials: credentials
             );
 
