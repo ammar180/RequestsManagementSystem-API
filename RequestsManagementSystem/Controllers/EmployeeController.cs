@@ -62,22 +62,23 @@ namespace RequestsManagementSystem.Controllers
             }
         }
         // get employee profile
-
-        //[HttpGet("profile{id}")]
-        //[Authorize]
-        //public async Task<ActionResult<ProfileDTO>> GetEmployeeData(int id)
-        //{
-        //    try
-        //    {
-        //        return Ok();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest();
-        //    }
-        //}
-
-
+        [HttpGet("Profile{id}")]
+        public async Task<ActionResult<EmployeeDto>> GetEmployeeData(int id)
+        {
+            try
+            {
+                var result = await _employeeService.GetEmployeeDataAsync(id);
+                return Ok(result);
+            }
+            catch (NullReferenceException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         // reset employee balance
     }
 }

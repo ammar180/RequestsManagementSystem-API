@@ -5,6 +5,7 @@ namespace RequestsManagementSystem.Core.Interfaces
     public interface IEmployeeRepository
     {
         Task<Employee?> GetEmployeeById(int id);
+        Task<Employee?> GetEmployeeByIdWithTransaction(int id);
         Task<IEnumerable<Employee>> GetEmployes();
         Task<bool> AddAsync(Employee employee);
         Task<bool> UpdateAsync(Employee employee);

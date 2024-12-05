@@ -3,6 +3,6 @@
 	public enum TransactionTitle
 	{
 		Leave,
-		Mission
+		Mission	
 	}
 }
