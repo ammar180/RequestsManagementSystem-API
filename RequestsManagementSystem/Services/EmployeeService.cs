@@ -83,12 +83,20 @@ namespace RequestsManagementSystem.Services
                     message = "ادخل كود المستخدم",
                 };
             }
+            if (EmployeeDto.OldPassword == null || EmployeeDto.OldPassword == string.Empty)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "ادخل كلمه المرور الحالية",
+                };
+            }
             if (EmployeeDto.Password == null || EmployeeDto.Password == string.Empty)
             {
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "ادخل كلمه المرور",
+                    message = "ادخل كلمه المرور الجديدة",
                 };
             }
             if (EmployeeDto.ConfirmPassword == null || EmployeeDto.ConfirmPassword == string.Empty)
@@ -96,7 +104,7 @@ namespace RequestsManagementSystem.Services
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "ادخل تاكيد كلمه المرور",
+                    message = "ادخل تاكيد كلمه المرور الجديدة",
                 };
             }
             var employee = await _employeeRepository.GetEmployeeById(EmployeeDto.EmployeeId);
@@ -109,14 +117,12 @@ namespace RequestsManagementSystem.Services
                     message = "خطأ في كود المستخدم",
                 };
             }
-            string passregex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,15}$";
-            Regex regex = new Regex(passregex);
-            if(!regex.IsMatch(EmployeeDto.Password))
+            if (employee.Password != EmployeeDto.OldPassword)
             {
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "كلمه المرور ضعيفه",
+                    message = "كلمة المرور القديمة غير صحيحة",
                 };
             }
             if(EmployeeDto.Password != EmployeeDto.ConfirmPassword)
@@ -124,7 +130,7 @@ namespace RequestsManagementSystem.Services
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "كلمه المرور غير مطابقه",
+                    message = "برجاء مطابقة تاكيد كلمة المرور",
                 };
             }
             employee.Password = EmployeeDto.Password;
