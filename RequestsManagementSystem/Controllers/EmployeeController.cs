@@ -42,7 +42,8 @@ namespace RequestsManagementSystem.Controllers
             }
 
         }
-        [HttpPost("UpdatePassword")]
+		// update employee password
+		[HttpPost("UpdatePassword")]
         [Authorize]
         public async Task<ActionResult<UpdatePasswordResultDto>> UpdatePassword(UpdatePasswordEmployeeDto EmployeeDto)
         {
@@ -60,6 +61,24 @@ namespace RequestsManagementSystem.Controllers
                 });
             }
         }
-
+        // get employee profile
+        [HttpGet("Profile{id}")]
+        public async Task<ActionResult<EmployeeDto>> GetEmployeeData(int id)
+        {
+            try
+            {
+                var result = await _employeeService.GetEmployeeDataAsync(id);
+                return Ok(result);
+            }
+            catch (NullReferenceException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        // reset employee balance
     }
 }

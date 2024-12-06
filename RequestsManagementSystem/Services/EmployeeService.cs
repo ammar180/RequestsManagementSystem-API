@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace RequestsManagementSystem.Services
 {
-    public class EmployeeService:IEmployeeService
+    public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IConfiguration _configuration;
@@ -21,11 +22,30 @@ namespace RequestsManagementSystem.Services
             _configuration = configuration;
         }
 
+        public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
+        {
+            // Validate employee credentials
+
+            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(id) ?? throw new NullReferenceException("المستخدم غير موجود");
+            employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
+            var resut = new EmployeeDto
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeName = employee.Name,
+                DepartmentName = employee.DepartmentName,
+                DateOfEmployment = employee.DateOfEmployment,
+                ManagerName= employee.Manager?.Name ?? "",
+                CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
+                RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+            };
+            return resut;
+        }
+
         public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
+            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(loginEmployeeDto.EmployeeId);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
@@ -33,15 +53,20 @@ namespace RequestsManagementSystem.Services
             }
 
             var token = GenerateJwtToken(employee);
+            employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
 
             return new LoginResultDto
             { 
                 token= token,
                 EmployeeDto=new EmployeeDto
                 {
-                    DepartmentName=employee.DepartmentName,
-                    EmployeeId=employee.EmployeeId,
-                    EmployeeName=employee.Name,
+                    EmployeeId = employee.EmployeeId,
+                    EmployeeName = employee.Name,
+                    DepartmentName = employee.DepartmentName,
+                    DateOfEmployment = employee.DateOfEmployment,
+                    ManagerName = employee.Manager?.Name ?? "",
+                    CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
+                    RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
                 },
                 message="تم تسجيل الدخول بنجاح",
                 Status=true

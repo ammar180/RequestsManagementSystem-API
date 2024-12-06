@@ -1,6 +1,0 @@
-﻿Build started at 10:36 PM...
-1>------ Build started: Project: RequestsManagementSystem, Configuration: Debug Any CPU ------
-1>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.
-1>RequestsManagementSystem -> E:\For_school\Project(HR_System)\RequestsManagementSystem\bin\Debug\net8.0\RequestsManagementSystem.dll
-========== Build: 1 succeeded, 0 failed, 2 up-to-date, 0 skipped ==========
-========== Build completed at 10:36 PM and took 05.992 seconds ==========
