@@ -49,7 +49,12 @@ public class EmployeeRepository : IEmployeeRepository
     public async Task<Employee?> GetEmployeeById(int id)
     {
         return await _context.Employees
-            .Include(e => e.Manager) // Include manager information
+            .FirstOrDefaultAsync(e => e.EmployeeId == id);
+    }
+    public async Task<Employee?> GetEmployeeByIdWithTransaction(int id)
+    {
+        return await _context.Employees
+            .Include(e => e.Transactions)
             .FirstOrDefaultAsync(e => e.EmployeeId == id);
     }
 

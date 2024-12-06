@@ -34,10 +34,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         principalColumn: "EmployeeId");
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Employees_ManagerId",
-                table: "Employees",
-                column: "ManagerId");
         }
 
         /// <inheritdoc />

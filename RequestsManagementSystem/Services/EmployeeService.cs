@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace RequestsManagementSystem.Services
 {
-    public class EmployeeService:IEmployeeService
+    public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IConfiguration _configuration;
@@ -21,11 +22,30 @@ namespace RequestsManagementSystem.Services
             _configuration = configuration;
         }
 
+        public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
+        {
+            // Validate employee credentials
+
+            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(id) ?? throw new NullReferenceException("المستخدم غير موجود");
+            employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
+            var resut = new EmployeeDto
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeName = employee.Name,
+                DepartmentName = employee.DepartmentName,
+                DateOfEmployment = employee.DateOfEmployment,
+                ManagerName= employee.Manager?.Name ?? "",
+                CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
+                RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+            };
+            return resut;
+        }
+
         public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
+            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(loginEmployeeDto.EmployeeId);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
@@ -34,16 +54,20 @@ namespace RequestsManagementSystem.Services
 
             var token = GenerateJwtToken(employee);
             var refreshToken = GenerateJwtToken(employee, true);
-
+            employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             return new LoginResultDto
             { 
                 token= token,
                 refreshToken = refreshToken,
                 EmployeeDto=new EmployeeDto
                 {
-                    DepartmentName=employee.DepartmentName,
-                    EmployeeId=employee.EmployeeId,
-                    EmployeeName=employee.Name,
+                    EmployeeId = employee.EmployeeId,
+                    EmployeeName = employee.Name,
+                    DepartmentName = employee.DepartmentName,
+                    DateOfEmployment = employee.DateOfEmployment,
+                    ManagerName = employee.Manager?.Name ?? "",
+                    CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
+                    RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
                 },
                 message="تم تسجيل الدخول بنجاح",
                 Status=true
@@ -60,12 +84,20 @@ namespace RequestsManagementSystem.Services
                     message = "ادخل كود المستخدم",
                 };
             }
+            if (EmployeeDto.OldPassword == null || EmployeeDto.OldPassword == string.Empty)
+            {
+                return new UpdatePasswordResultDto
+                {
+                    Status = false,
+                    message = "ادخل كلمه المرور الحالية",
+                };
+            }
             if (EmployeeDto.Password == null || EmployeeDto.Password == string.Empty)
             {
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "ادخل كلمه المرور",
+                    message = "ادخل كلمه المرور الجديدة",
                 };
             }
             if (EmployeeDto.ConfirmPassword == null || EmployeeDto.ConfirmPassword == string.Empty)
@@ -73,7 +105,7 @@ namespace RequestsManagementSystem.Services
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "ادخل تاكيد كلمه المرور",
+                    message = "ادخل تاكيد كلمه المرور الجديدة",
                 };
             }
             var employee = await _employeeRepository.GetEmployeeById(EmployeeDto.EmployeeId);
@@ -86,14 +118,12 @@ namespace RequestsManagementSystem.Services
                     message = "خطأ في كود المستخدم",
                 };
             }
-            string passregex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,15}$";
-            Regex regex = new Regex(passregex);
-            if(!regex.IsMatch(EmployeeDto.Password))
+            if (employee.Password != EmployeeDto.OldPassword)
             {
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "كلمه المرور ضعيفه",
+                    message = "كلمة المرور القديمة غير صحيحة",
                 };
             }
             if(EmployeeDto.Password != EmployeeDto.ConfirmPassword)
@@ -101,7 +131,7 @@ namespace RequestsManagementSystem.Services
                 return new UpdatePasswordResultDto
                 {
                     Status = false,
-                    message = "كلمه المرور غير مطابقه",
+                    message = "برجاء مطابقة تاكيد كلمة المرور",
                 };
             }
             employee.Password = EmployeeDto.Password;
