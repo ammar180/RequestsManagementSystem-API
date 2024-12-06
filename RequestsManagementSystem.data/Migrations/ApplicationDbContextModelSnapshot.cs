@@ -38,6 +38,9 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("EmployeeRole")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ManagerId")
                         .HasColumnType("int");
 

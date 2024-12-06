@@ -33,7 +33,7 @@ namespace RequestsManagementSystem.Controllers
                     message = ex.Message,
                     Status = false
                 };
-                return Unauthorized(result);
+                return Ok(result);
             }
 
             catch (Exception ex)

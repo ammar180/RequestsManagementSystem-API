@@ -17,13 +17,19 @@ namespace RequestsManagementSystem.Data
 				.Property(p => p.Status)
 				.HasConversion<int>();
 
-			modelBuilder.Entity<Transaction>()
-				.Property(p => p.Itinerary)
-				.HasConversion(
-					v => string.Join(';', v),
-					v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
-				);
-		}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+          modelBuilder.Entity<Employee>()
+            .Property(e => e.EmployeeRole)
+            .HasConversion<int>();
+            }
+          modelBuilder.Entity<Transaction>()
+            .Property(p => p.Itinerary)
+            .HasConversion(
+              v => string.Join(';', v),
+              v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
+            );
+		    }
         public DbSet<Employee> Employees { get; set; } = default!;
         public DbSet<Transaction> Transactions { get; set; } = default!;
     }

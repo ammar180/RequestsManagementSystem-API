@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RequestsManagementSystem.Core.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RequestsManagementSystem.Core.Entities
@@ -17,6 +18,7 @@ namespace RequestsManagementSystem.Core.Entities
         public int VacationsBalance { get; set; }
 
         public DateOnly DateOfEmployment { get; set; }
+        public Roles EmployeeRole { get; set; }
 
         [StringLength(200)]
         public string DepartmentName { get; set; } = string.Empty;
