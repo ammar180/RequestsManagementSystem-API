@@ -38,9 +38,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("EmployeeRole")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ManagerId")
                         .HasColumnType("int");
 
@@ -59,7 +56,7 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     b.HasKey("EmployeeId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Transaction", b =>
@@ -106,7 +103,7 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>

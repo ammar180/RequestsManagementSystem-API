@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RequestsManagementSystem.Dtos.TransactionsDtos;
+using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -9,5 +11,44 @@ namespace RequestsManagementSystem.Controllers
 	[Authorize]
 	public class TransactionController : ControllerBase
 	{
-	}
+		private readonly ITransactionService _transactionService;
+
+        public TransactionController(ITransactionService transactionService)
+        {
+            _transactionService = transactionService;
+        }
+
+
+        [HttpPost("PostTransaction")]
+        public async Task<ActionResult<CreateTransactionResponseDto>> PostTransaction(CreateTransactionDto transactionDto)
+        {
+            if (transactionDto == null)
+            {
+                return BadRequest(new CreateTransactionResponseDto
+                {
+                    Status = false,
+                    Message = "Invalid data."
+                });
+            }
+
+            bool isAdded = await _transactionService.AddTransactionAsync(transactionDto);
+
+            if (isAdded)
+            {
+                return Ok(new CreateTransactionResponseDto
+                {
+                    Status = true,
+                    Message = "تم ارسال الطلب بنجاح، برجاء اتظار رد المدير"
+                });
+            }
+            else
+            {
+                return BadRequest(new CreateTransactionResponseDto
+                {
+                    Status = false,
+                    Message = "حدث خطأ أثناء ارسال الطلب."
+                });
+            }
+        }
+    }
 }
