@@ -10,9 +10,9 @@ namespace RequestsManagementSystem.Core.Entities
 		public DateTime StartDate { get; set; }
 		public DateTime EndDate { get; set; }
 		public int SubstituteEmployeeId { get; set; }
-		public string Itinerary { get; set; } = default!;
+		public List<string> Itinerary { get; set; } = default!;
 		public string RespondMessage { get; set; } = string.Empty;
-		public TransactionStatus? Status { get; set; }
+		public TransactionStatus Status { get; set; } = 0;
         public DateTime CreationDate { get; set; } = DateTime.Now;
         public int EmployeeId { get; set; }
 		public Employee Employee { get; set; } = default!;

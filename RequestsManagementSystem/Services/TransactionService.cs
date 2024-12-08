@@ -20,13 +20,12 @@ namespace RequestsManagementSystem.Services
 			{
                 var transaction = new Transaction
                 {
-                    TransactionId = transactionDto.TransactionId,
                     Title = transactionDto.Title,
                     Type = transactionDto.Type,
                     StartDate = transactionDto.StartDate,
                     EndDate = transactionDto.EndDate,
                     SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
-                    Itinerary = string.Join(",", transactionDto.Itinerary),
+                    Itinerary = transactionDto.Itinerary,
                     EmployeeId = transactionDto.EmployeeId
                 };
                 await _transactionRepository.AddTransactionAsync(transaction);

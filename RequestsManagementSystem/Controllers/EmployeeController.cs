@@ -30,7 +30,7 @@ namespace RequestsManagementSystem.Controllers
             {
                 var result= new LoginResultDto
                 {
-                    message = ex.Message,
+                    Message = ex.Message,
                     Status = false
                 };
                 return Ok(result);
@@ -62,7 +62,7 @@ namespace RequestsManagementSystem.Controllers
             }
         }
         // get employee profile
-        [HttpGet("Profile{id}")]
+        [HttpGet("Profile/{id}")]
         public async Task<ActionResult<EmployeeDto>> GetEmployeeData(int id)
         {
             try

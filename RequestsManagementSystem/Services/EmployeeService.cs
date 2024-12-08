@@ -69,7 +69,7 @@ namespace RequestsManagementSystem.Services
                     CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
                     RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
                 },
-                message="تم تسجيل الدخول بنجاح",
+                Message="تم تسجيل الدخول بنجاح",
                 Status=true
             };
         }

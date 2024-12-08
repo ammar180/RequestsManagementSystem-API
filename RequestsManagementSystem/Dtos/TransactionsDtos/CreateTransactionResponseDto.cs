@@ -1,8 +1,6 @@
 ﻿namespace RequestsManagementSystem.Dtos.TransactionsDtos
 {
-    public class CreateTransactionResponseDto
+    public class CreateTransactionResponseDto : BaseResponce
     {
-        public bool Status { get; set; }
-        public string Message { get; set; }
     }
 }
