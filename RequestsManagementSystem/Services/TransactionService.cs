@@ -1,6 +1,10 @@
 ﻿using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Core.Enums;
+using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
+using System.Globalization;
 
 namespace RequestsManagementSystem.Services
 {
@@ -36,5 +40,33 @@ namespace RequestsManagementSystem.Services
 				return false;
 			}
         }
+
+        public async Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId)
+        {
+            var transaction = await _transactionRepository.GetStaffTransaction(managerId);
+            
+            var result = await Task.WhenAll(transaction.Select(async t => new StaffTransactionDto
+            {
+                TransactionId = t.TransactionId,
+                Type = t.Type.GetEnumDescription(),
+                SendDate = t.CreationDate,
+                DueDate = t.StartDate == t.EndDate? 
+                ConvertToArabicDate(t.StartDate): //true
+                $"من {ConvertToArabicDate(t.StartDate)} الى {ConvertToArabicDate(t.EndDate)}", //false
+                Title = t.Title.GetEnumDescription(),
+                EmployeeName = t.Employee.Name,
+            }));
+
+            return result.ToList();
+        }
+        private string ConvertToArabicDate(DateTime date)
+        {
+            CultureInfo arabicCulture = new CultureInfo("ar-EG");
+
+            string arabicDate = date.ToString("d MMMM", arabicCulture);
+
+            return arabicDate;
+        }
+
     }
 }

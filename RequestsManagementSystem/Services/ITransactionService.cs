@@ -5,5 +5,6 @@ namespace RequestsManagementSystem.Services
 	public interface ITransactionService
 	{
         Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto);
+        Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId);
     }
 }

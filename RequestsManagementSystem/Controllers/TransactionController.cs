@@ -50,5 +50,19 @@ namespace RequestsManagementSystem.Controllers
                 });
             }
         }
+        [HttpGet("GetStaffTransactions/{managerId}")]
+        public async Task<ActionResult<IEnumerable<StaffTransactionDto>>> GetStaffTransaction(int managerId)
+        {
+            try
+            {
+                var transaction = await _transactionService.GetStaffTransaction(managerId);
+
+                return Ok(transaction);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RequestsManagementSystem.Core.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Interfaces;
 
 namespace RequestsManagementSystem.Data.Repositories
@@ -24,6 +25,16 @@ namespace RequestsManagementSystem.Data.Repositories
             {
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId)
+        {
+            return await _context.Employees
+                .Include(e => e.Transactions)
+                .ThenInclude(e=> e.Employee)
+                .Where(e => e.ManagerId == managerId)
+                .SelectMany(e => e.Transactions)
+                .ToListAsync();
         }
     }
 }

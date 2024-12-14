@@ -5,5 +5,6 @@ namespace RequestsManagementSystem.Core.Interfaces
 	public interface ITransactionRepository
 	{
         Task<bool> AddTransactionAsync(Transaction transaction);
+        Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId);
     }
 }
