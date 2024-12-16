@@ -10,7 +10,7 @@ namespace RequestsManagementSystem.Dtos.TransactionsDtos
         public string Title { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public string DueDate { get; set; } = string.Empty;
-        public DateTime SendDate { get; set; } = DateTime.Now;
+        public int SendDays { get; set; }= 0;
         public bool Seen { get; set; } = false;
     }
 }

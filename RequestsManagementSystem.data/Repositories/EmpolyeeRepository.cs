@@ -77,7 +77,8 @@ public class EmployeeRepository : IEmployeeRepository
             // Update fields
             existingEmployee.Name = employee.Name;
             existingEmployee.Password = employee.Password;
-            existingEmployee.VacationsBalance = employee.VacationsBalance;
+            existingEmployee.RegularLeaveCount = employee.RegularLeaveCount;
+            existingEmployee.CasualLeaveCount = employee.CasualLeaveCount;
             existingEmployee.DateOfEmployment = employee.DateOfEmployment;
             existingEmployee.EmployeeRole = employee.EmployeeRole;
             existingEmployee.DepartmentName = employee.DepartmentName;

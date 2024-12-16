@@ -15,7 +15,8 @@ namespace RequestsManagementSystem.Core.Entities
         [StringLength(200)]
         public string Password { get; set; } = string.Empty;
 
-        public int VacationsBalance { get; set; }
+        public float RegularLeaveCount { get; set; } = 0;
+        public int CasualLeaveCount { get; set; } = 0;
 
         public DateOnly DateOfEmployment { get; set; }
         public Roles EmployeeRole { get; set; }

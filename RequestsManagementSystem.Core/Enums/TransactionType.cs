@@ -13,6 +13,10 @@ namespace RequestsManagementSystem.Core.Enums
         ExcusedAbsent,
         [Description("غياب بدون بأذن")]
         UnexcusedAbsent,
+        [Description("نصف يوم")]
+        HalfDay,
+        [Description("ربع يوم")]
+        QuarterDay,
         // mission reques types
         [Description("يوم كامل")]
         FullDay,

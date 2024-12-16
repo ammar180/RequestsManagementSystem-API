@@ -49,7 +49,7 @@ namespace RequestsManagementSystem.Services
             {
                 TransactionId = t.TransactionId,
                 Type = t.Type.GetEnumDescription(),
-                SendDate = t.CreationDate,
+                SendDays = (DateTime.Now - t.CreationDate).Days,
                 DueDate = t.StartDate == t.EndDate? 
                 ConvertToArabicDate(t.StartDate): //true
                 $"من {ConvertToArabicDate(t.StartDate)} الى {ConvertToArabicDate(t.EndDate)}", //false

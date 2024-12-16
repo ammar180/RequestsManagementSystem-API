@@ -1,6 +1,9 @@
 ﻿using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 
-public class TransactionDto
+namespace RequestsManagementSystem.Dtos.TransactionsDtos
 {
+    public class TransactionDto
+    {
+    }
 }

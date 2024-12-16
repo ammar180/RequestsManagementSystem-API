@@ -30,6 +30,9 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
 
+                    b.Property<int>("CasualLeaveCount")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("DateOfEmployment")
                         .HasColumnType("date");
 
@@ -38,8 +41,8 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("EmployeeRole")
-                        .HasColumnType("int");
+                    b.Property<short>("EmployeeRole")
+                        .HasColumnType("smallint");
 
                     b.Property<int?>("ManagerId")
                         .HasColumnType("int");
@@ -54,10 +57,12 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("VacationsBalance")
-                        .HasColumnType("int");
+                    b.Property<float>("RegularLeaveCount")
+                        .HasColumnType("real");
 
                     b.HasKey("EmployeeId");
+
+                    b.HasIndex("ManagerId");
 
                     b.ToTable("Employees");
                 });
@@ -83,6 +88,9 @@ namespace RequestsManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("RespondDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("RespondMessage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -90,17 +98,17 @@ namespace RequestsManagementSystem.Data.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<short>("Status")
+                        .HasColumnType("smallint");
 
                     b.Property<int>("SubstituteEmployeeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Title")
-                        .HasColumnType("int");
+                    b.Property<short>("Title")
+                        .HasColumnType("smallint");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<short>("Type")
+                        .HasColumnType("smallint");
 
                     b.HasKey("TransactionId");
 
@@ -112,10 +120,9 @@ namespace RequestsManagementSystem.Data.Migrations
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>
                 {
                     b.HasOne("RequestsManagementSystem.Core.Entities.Employee", "Manager")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("ManagerStaff")
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Manager");
                 });
@@ -133,6 +140,8 @@ namespace RequestsManagementSystem.Data.Migrations
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>
                 {
+                    b.Navigation("ManagerStaff");
+
                     b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618

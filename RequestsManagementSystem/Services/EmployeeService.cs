@@ -26,7 +26,7 @@ namespace RequestsManagementSystem.Services
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(id) ?? throw new NullReferenceException("المستخدم غير موجود");
+            var employee = await _employeeRepository.GetEmployeeById(id) ?? throw new NullReferenceException("المستخدم غير موجود");
             employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             var resut = new EmployeeDto
             {
@@ -35,8 +35,8 @@ namespace RequestsManagementSystem.Services
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
                 ManagerName= employee.Manager?.Name ?? "",
-                CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
-                RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+                RegularLeaveCount = float.Parse(_configuration["TotalRegularLeave"]!) - employee.RegularLeaveCount,
+                CasualLeaveCount = int.Parse(_configuration["TotalCasualLeave"]!) - employee.CasualLeaveCount,
             };
             return resut;
         }
@@ -45,7 +45,7 @@ namespace RequestsManagementSystem.Services
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(loginEmployeeDto.EmployeeId);
+            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
@@ -66,8 +66,8 @@ namespace RequestsManagementSystem.Services
                     DepartmentName = employee.DepartmentName,
                     DateOfEmployment = employee.DateOfEmployment,
                     ManagerName = employee.Manager?.Name ?? "",
-                    CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
-                    RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+                    RegularLeaveCount = float.Parse(_configuration["TotalRegularLeave"]!) - employee.RegularLeaveCount,
+                    CasualLeaveCount = int.Parse(_configuration["TotalCasualLeave"]!) - employee.CasualLeaveCount,
                 },
                 Message="تم تسجيل الدخول بنجاح",
                 Status=true
