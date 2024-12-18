@@ -41,6 +41,25 @@ namespace RequestsManagementSystem.Services
 			}
         }
 
+        public async Task<IEnumerable<GetTransactionByEmployeeDto>> GetAllTransactionsByEmployeeId(int EmployeeId)
+        {
+            var transactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(EmployeeId);
+
+            var result = await Task.WhenAll(transactions.Select(async t => new GetTransactionByEmployeeDto
+            {
+                Type = t.Type.GetEnumDescription(),
+                Status = t.Status.GetEnumDescription(),
+                ResponseDate = t.Status == TransactionStatus.Pending ? null : t.CreationDate,
+                DueDate = t.StartDate == t.EndDate ?
+                t.StartDate.ConvertToArabicDate() : //true
+                $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
+                Title = t.Title.GetEnumDescription(),
+            })); 
+            return result.ToList();
+
+        }
+
+        //SendDays = (DateTime.Now - t.CreationDate).Days,
         public async Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId)
         {
             var transaction = await _transactionRepository.GetStaffTransaction(managerId);
@@ -51,22 +70,15 @@ namespace RequestsManagementSystem.Services
                 Type = t.Type.GetEnumDescription(),
                 SendDays = (DateTime.Now - t.CreationDate).Days,
                 DueDate = t.StartDate == t.EndDate? 
-                ConvertToArabicDate(t.StartDate): //true
-                $"من {ConvertToArabicDate(t.StartDate)} الى {ConvertToArabicDate(t.EndDate)}", //false
+                t.StartDate.ConvertToArabicDate() : //true
+                $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
                 Title = t.Title.GetEnumDescription(),
                 EmployeeName = t.Employee.Name,
             }));
 
             return result.ToList();
         }
-        private string ConvertToArabicDate(DateTime date)
-        {
-            CultureInfo arabicCulture = new CultureInfo("ar-EG");
-
-            string arabicDate = date.ToString("d MMMM", arabicCulture);
-
-            return arabicDate;
-        }
+       
 
     }
 }

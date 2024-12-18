@@ -6,5 +6,7 @@ namespace RequestsManagementSystem.Services
 	{
         Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto);
         Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId);
+        Task<IEnumerable<GetTransactionByEmployeeDto>> GetAllTransactionsByEmployeeId(int EmployeeId);
+
     }
 }

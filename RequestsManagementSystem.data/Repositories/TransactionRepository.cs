@@ -36,5 +36,15 @@ namespace RequestsManagementSystem.Data.Repositories
                 .SelectMany(e => e.Transactions)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionByEmployeeIdAsync(int EmployeeId)
+        {
+            var transactions = await _context.Transactions
+                .Where(t => t.EmployeeId == EmployeeId)
+                .Include(t => t.Employee)
+                .ToListAsync();
+            return transactions;
+        
+        }
     }
 }

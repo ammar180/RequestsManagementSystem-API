@@ -6,12 +6,12 @@ using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Controllers
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	[Authorize]
-	public class TransactionController : ControllerBase
-	{
-		private readonly ITransactionService _transactionService;
+    [Route("api/[controller]")]
+    [ApiController]
+    //[Authorize]
+    public class TransactionController : ControllerBase
+    {
+        private readonly ITransactionService _transactionService;
 
         public TransactionController(ITransactionService transactionService)
         {
@@ -50,6 +50,7 @@ namespace RequestsManagementSystem.Controllers
                 });
             }
         }
+
         [HttpGet("GetStaffTransactions/{managerId}")]
         public async Task<ActionResult<IEnumerable<StaffTransactionDto>>> GetStaffTransaction(int managerId)
         {
@@ -63,6 +64,20 @@ namespace RequestsManagementSystem.Controllers
             {
                 return BadRequest();
             }
+        }
+        [HttpGet("GetAllTransactionsByEmployeeId/{EmployeeId}")]
+        public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int EmployeeId)
+        {
+            try
+            {
+                var transactions = await _transactionService.GetAllTransactionsByEmployeeId(EmployeeId);
+                return Ok(transactions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+
         }
     }
 }

@@ -6,5 +6,7 @@ namespace RequestsManagementSystem.Core.Interfaces
 	{
         Task<bool> AddTransactionAsync(Transaction transaction);
         Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId);
-    }
+        Task<IEnumerable<Transaction>> GetTransactionByEmployeeIdAsync(int EmployeeId);
+
+    } 
 }
