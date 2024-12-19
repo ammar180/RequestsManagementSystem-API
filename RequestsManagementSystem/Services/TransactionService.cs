@@ -1,4 +1,6 @@
-﻿using RequestsManagementSystem.Core.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
@@ -8,7 +10,7 @@ using System.Globalization;
 
 namespace RequestsManagementSystem.Services
 {
-    public class TransactionService : ITransactionService
+	public class TransactionService : ITransactionService
     {
 
         private readonly ITransactionRepository _transactionRepository;
@@ -47,6 +49,7 @@ namespace RequestsManagementSystem.Services
 
             var result = await Task.WhenAll(transactions.Select(async t => new GetTransactionByEmployeeDto
             {
+                TransactionId = t.TransactionId,
                 Type = t.Type.GetEnumDescription(),
                 Status = t.Status.GetEnumDescription(),
                 ResponseDate = t.Status == TransactionStatus.Pending ? null : t.CreationDate,
@@ -54,12 +57,12 @@ namespace RequestsManagementSystem.Services
                 t.StartDate.ConvertToArabicDate() : //true
                 $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
                 Title = t.Title.GetEnumDescription(),
+                Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.EmployeeSeen),
             })); 
-            return result.ToList();
+            return [.. result];
 
         }
 
-        //SendDays = (DateTime.Now - t.CreationDate).Days,
         public async Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId)
         {
             var transaction = await _transactionRepository.GetStaffTransaction(managerId);
@@ -74,11 +77,29 @@ namespace RequestsManagementSystem.Services
                 $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
                 Title = t.Title.GetEnumDescription(),
                 EmployeeName = t.Employee.Name,
+                Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.ManagerSeen),
             }));
 
-            return result.ToList();
+            return [.. result];
         }
-       
 
-    }
+		public async Task SetSeenStatus(int id, string whoSeen)
+		{
+            var transaction = await _transactionRepository.GetTransactionByIdAsync(id) ?? throw new NullReferenceException("Transaction Not found");
+            if (!Enum.TryParse(whoSeen, true, out Roles whoSeenEnum))
+                throw new InvalidOperationException("Can't Determined who Seen the transaction");
+            switch (whoSeenEnum)
+            {
+                case Roles.Employee:
+                    transaction.SeenStatus |= TransactionSeenStatus.EmployeeSeen;
+                    break;
+                case Roles.Manager:
+                    transaction.SeenStatus |= TransactionSeenStatus.ManagerSeen;
+                    break;
+                default:
+                    break;
+            }
+            await _transactionRepository.SaveChanges();
+		}
+	}
 }

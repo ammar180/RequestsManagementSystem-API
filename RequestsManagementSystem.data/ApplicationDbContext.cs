@@ -27,6 +27,9 @@ namespace RequestsManagementSystem.Data
                 .Property(p => p.Status)
                 .HasConversion<short>();
             modelBuilder.Entity<Transaction>()
+                .Property(p => p.SeenStatus)
+                .HasConversion<short>();
+            modelBuilder.Entity<Transaction>()
                 .Property(p => p.Itinerary)
                 .HasConversion(
                     v => string.Join(';', v),

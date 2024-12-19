@@ -21,5 +21,6 @@ namespace RequestsManagementSystem.Core.Entities
         public int EmployeeId { get; set; }
 		[ForeignKey("EmployeeId")]
 		public Employee Employee { get; set; } = default!;
+		public TransactionSeenStatus SeenStatus { get; set; } = 0;
 	}
 }

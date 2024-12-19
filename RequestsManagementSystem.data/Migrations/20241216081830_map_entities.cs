@@ -53,7 +53,8 @@ namespace RequestsManagementSystem.Data.Migrations
                     RespondMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<short>(type: "smallint", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EmployeeId = table.Column<int>(type: "int", nullable: false)
+                    EmployeeId = table.Column<int>(type: "int", nullable: false),
+                    SeenStatus = table.Column<short>(type: "smallint", nullable: false)
                 },
                 constraints: table =>
                 {

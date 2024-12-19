@@ -4,7 +4,7 @@ using RequestsManagementSystem.Core.Interfaces;
 
 namespace RequestsManagementSystem.Data.Repositories
 {
-    public class TransactionRepository : ITransactionRepository
+	public class TransactionRepository : ITransactionRepository
     {
 
         private readonly ApplicationDbContext _context;
@@ -46,5 +46,16 @@ namespace RequestsManagementSystem.Data.Repositories
             return transactions;
         
         }
-    }
+
+		public async Task<Transaction?> GetTransactionByIdAsync(int id)
+		{
+            // lazy loading
+            return await _context.Transactions.FindAsync(id);
+		}
+
+		public async Task SaveChanges()
+		{
+            await _context.SaveChangesAsync();
+		}
+	}
 }

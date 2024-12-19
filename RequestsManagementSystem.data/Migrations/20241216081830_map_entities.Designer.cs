@@ -98,6 +98,9 @@ namespace RequestsManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<short>("SeenStatus")
+                        .HasColumnType("smallint");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
