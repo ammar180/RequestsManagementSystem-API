@@ -25,7 +25,7 @@ builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService,EmployeeService>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
-
+builder.Services.AddTransient<IJWTService, JWTService>();
 // Add Authentication with JWT Bearer
 builder.Services.AddAuthentication(options =>
 {

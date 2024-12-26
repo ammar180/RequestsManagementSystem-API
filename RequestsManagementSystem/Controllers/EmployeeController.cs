@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -12,9 +13,11 @@ namespace RequestsManagementSystem.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
-        public EmployeeController(IEmployeeService employeeService)
+        private readonly IJWTService _jWTService;
+        public EmployeeController(IEmployeeService employeeService, IJWTService jWT)
         {
             _employeeService = employeeService;
+            _jWTService = jWT;
         }
 
         [HttpPost("Login")]
@@ -73,6 +76,28 @@ namespace RequestsManagementSystem.Controllers
             catch (NullReferenceException ex)
             {
                 return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("NewToken")]
+        [AllowAnonymous]
+        public ActionResult<string> GetNewToken(string refreshToken)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(refreshToken) || _jWTService.IsTokenExpired(refreshToken))
+                {
+                    return Unauthorized();
+                }
+
+                var payload = _jWTService.GetEmployeePayloadFromToken(refreshToken);
+
+                var token = _jWTService.GenerateJwtToken(payload);
+
+                return Ok(token);
             }
             catch (Exception ex)
             {

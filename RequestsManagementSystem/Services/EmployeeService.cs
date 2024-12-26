@@ -15,11 +15,13 @@ namespace RequestsManagementSystem.Services
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IConfiguration _configuration;
+        private readonly IJWTService _JWT;
 
-        public EmployeeService(IEmployeeRepository employeeRepository, IConfiguration configuration)
+        public EmployeeService(IEmployeeRepository employeeRepository, IConfiguration configuration, IJWTService jWT)
         {
             _employeeRepository = employeeRepository;
             _configuration = configuration;
+            _JWT = jWT;
         }
 
         public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
@@ -51,15 +53,20 @@ namespace RequestsManagementSystem.Services
             {
                 throw new UnauthorizedAccessException("خطأ في كلمة لسر أو كود المستخدم");
             }
-
-            var token = GenerateJwtToken(employee);
-            var refreshToken = GenerateJwtToken(employee, true);
+            var payload = new EmployeePayLoad
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeName = employee.Name,
+                EmployeeRole = employee.EmployeeRole.ToString(),
+            };
+            var token = _JWT.GenerateJwtToken(payload);
+            var refreshToken = _JWT.GenerateJwtToken(payload, true);
             employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             return new LoginResultDto
-            { 
+            {
                 token= token,
                 refreshToken = refreshToken,
-                EmployeeDto=new EmployeeDto
+                EmployeeDto= new EmployeeDto
                 {
                     EmployeeId = employee.EmployeeId,
                     EmployeeName = employee.Name,
@@ -158,29 +165,6 @@ namespace RequestsManagementSystem.Services
                     message = "حدث خطأ اثناء عمليه تحديث كلمه المرور",
                 };
             }
-        }
-
-        private string GenerateJwtToken(Employee employee, bool isRefreshToken = false)
-        {
-            var claims = new List<Claim>
-            {
-				new(ClaimTypes.Name, employee.Name),
-                new(ClaimTypes.Role, employee.EmployeeRole.ToString()),
-                new(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: isRefreshToken ? DateTime.Now.AddDays(double.Parse(_configuration["Jwt:refreshExpiresInDayes"]!)) : DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
