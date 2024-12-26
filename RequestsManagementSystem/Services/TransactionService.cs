@@ -25,9 +25,9 @@ namespace RequestsManagementSystem.Services
 			try
 			{
                 if (!Enum.TryParse(transactionDto.Title, true, out TransactionTitle title))
-                    throw new InvalidOperationException("Can't Determined the title of the transiaction.");
+                    throw new InvalidOperationException("Can't Determined the title of the transaction.");
                 if (!Enum.TryParse(transactionDto.Type, true, out TransactionType type))
-                    throw new InvalidOperationException("Can't Determined the title of the transiaction.");
+                    throw new InvalidOperationException("Can't Determined the type of the transaction.");
                 var transaction = new Transaction
                 {
                     Title = title,
