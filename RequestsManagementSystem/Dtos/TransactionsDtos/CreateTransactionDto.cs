@@ -5,8 +5,8 @@ namespace RequestsManagementSystem.Dtos.TransactionsDtos
 {
     public class CreateTransactionDto
     {
-        public TransactionTitle Title { get; set; }
-        public TransactionType Type { get; set; }
+        public string Title { get; set; }
+        public string Type { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int SubstituteEmployeeId { get; set; }

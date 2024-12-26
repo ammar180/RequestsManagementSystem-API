@@ -8,5 +8,6 @@ namespace RequestsManagementSystem.Services
         Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId);
 		Task<IEnumerable<GetTransactionByEmployeeDto>> GetAllTransactionsByEmployeeId(int EmployeeId);
 		Task SetSeenStatus(int id, string whoSeen);
-	}
+
+    }
 }
