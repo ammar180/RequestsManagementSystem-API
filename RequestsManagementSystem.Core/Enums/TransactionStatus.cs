@@ -4,11 +4,13 @@ namespace RequestsManagementSystem.Core.Enums
 {
     public enum TransactionStatus
 	{
-		[Description("قيد الانتظار")]
+		[Description("معلق")]
         Pending,
         [Description("مقبول")]
         Approved,
         [Description("مرفوض")]
-        Rejected
+        Rejected,
+        [Description("معدل")]
+        Edited,
 	}
 }

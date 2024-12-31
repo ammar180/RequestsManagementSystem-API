@@ -51,43 +51,69 @@ namespace RequestsManagementSystem.Services
         {
             var transactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(EmployeeId);
 
-            var result = await Task.WhenAll(transactions.Select(async t => new GetTransactionByEmployeeDto
-            {
-                TransactionId = t.TransactionId,
-                Type = t.Type.GetEnumDescription(),
-                Status = t.Status.GetEnumDescription(),
-                ResponseDate = t.Status == TransactionStatus.Pending ? null : t.CreationDate,
-                DueDate = t.StartDate == t.EndDate ?
-                t.StartDate.ConvertToArabicDate() : //true
-                $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
-                Title = t.Title.GetEnumDescription(),
-                Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.EmployeeSeen),
-            })); 
+            var result =
+                transactions.Select(t => new GetTransactionByEmployeeDto
+                {
+                    TransactionId = t.TransactionId,
+                    Title = t.Title.GetEnumDescription(),
+                    Type = t.Type.GetEnumDescription(),
+                    Status = t.Status.GetEnumDescription(),
+                    DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
+                    SendDate = t.CreationDate.ConvertToArabicDate(),
+                    TakenDays = CalculateTakenDays(t),
+                });
             return [.. result];
 
+        }
+
+        private static string CalculateTakenDays(Transaction t)
+        {
+            // check parrtial leave
+            if (t.Title.Equals(TransactionTitle.Leave) && t.Type.Equals(TransactionType.HalfDay) || t.Type.Equals(TransactionType.QuarterDay))
+                return t.Type.GetEnumDescription();
+            
+            var days = (t.EndDate - t.StartDate).Days;
+
+            return days switch
+            {
+                0 => "يوم واحد",
+                1 => "يوم واحد",
+                2 => "يومان",
+                (>= 3 and <= 10) => string.Join(' ', days.ToString(), "أيام"),
+                _ => string.Join(' ', days.ToString(), "يوم"),
+            };
         }
 
         public async Task<IEnumerable<StaffTransactionDto>> GetStaffTransaction(int managerId)
         {
-            var transaction = await _transactionRepository.GetStaffTransaction(managerId);
-            
-            var result = await Task.WhenAll(transaction.Select(async t => new StaffTransactionDto
-            {
-                TransactionId = t.TransactionId,
-                Type = t.Type.GetEnumDescription(),
-                SendDays = (DateTime.Now - t.CreationDate).Days,
-                DueDate = t.StartDate == t.EndDate? 
-                t.StartDate.ConvertToArabicDate() : //true
-                $"من {t.StartDate.ConvertToArabicDate()} الى {t.EndDate.ConvertToArabicDate()}", //false
-                Title = t.Title.GetEnumDescription(),
-                EmployeeName = t.Employee.Name,
-                Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.ManagerSeen),
-            }));
+            var transactions = await _transactionRepository.GetStaffTransaction(managerId);
+
+            var result = await Task.WhenAll((IEnumerable<Task<StaffTransactionDto>>)
+                transactions.Select(async t => new StaffTransactionDto
+                {
+                    TransactionId = t.TransactionId,
+                    Title = t.Title.GetEnumDescription(),
+                    Type = t.Type.GetEnumDescription(),
+                    DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
+                    SendDate = t.CreationDate.ConvertToArabicDate(),
+                    TakenDays = CalculateTakenDays(t),
+                    EmployeeName = t.Employee.Name,
+                    Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.ManagerSeen),
+                }));
 
             return [.. result];
         }
 
-		public async Task SetSeenStatus(int id, string whoSeen)
+        private static string GetFormattedDueDate(DateTime StartDate, DateTime EndDate)
+        {
+            return (StartDate == EndDate) ?
+                            StartDate.ConvertToArabicDate() :
+                            (StartDate.Month == EndDate.Month) ?
+                            $"من {StartDate.ConvertToArabicDate()} إلى {EndDate.Day}" :
+                            $"من {StartDate.ConvertToArabicDate()} الى {EndDate.ConvertToArabicDate()}";
+        }
+
+        public async Task SetSeenStatus(int id, string whoSeen)
 		{
             var transaction = await _transactionRepository.GetTransactionByIdAsync(id) ?? throw new NullReferenceException("Transaction Not found");
             if (!Enum.TryParse(whoSeen, true, out Roles whoSeenEnum))

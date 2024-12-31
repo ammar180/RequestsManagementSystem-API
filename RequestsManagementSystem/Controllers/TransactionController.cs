@@ -83,7 +83,7 @@ namespace RequestsManagementSystem.Controllers
 
         }
 		[HttpPatch("{id}/seen")]
-		public async Task<IActionResult> UpdateSeenStatus(int id, [FromBody] string whoSeen)
+		public async Task<IActionResult> UpdateSeenStatus(int id, string whoSeen)
 		{
 			try
 			{
