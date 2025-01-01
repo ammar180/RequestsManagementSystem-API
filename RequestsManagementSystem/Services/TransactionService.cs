@@ -14,10 +14,12 @@ namespace RequestsManagementSystem.Services
     {
 
         private readonly ITransactionRepository _transactionRepository;
+        private readonly IEmployeeRepository _employeeRepository;
 
-        public TransactionService(ITransactionRepository transactionRepository)
+        public TransactionService(ITransactionRepository transactionRepository,IEmployeeRepository employeeRepository)
         {
             _transactionRepository = transactionRepository;
+            _employeeRepository = employeeRepository;   
         }
 
         public async Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto)
@@ -28,6 +30,16 @@ namespace RequestsManagementSystem.Services
                     throw new InvalidOperationException("Can't Determined the title of the transaction.");
                 if (!Enum.TryParse(transactionDto.Type, true, out TransactionType type))
                     throw new InvalidOperationException("Can't Determined the type of the transaction.");
+
+
+                 if(await _employeeRepository.GetEmployeeById(transactionDto.SubstituteEmployeeId)==null)
+                    throw new InvalidOperationException("The substitute Employee Id is wrong.");
+
+                if (transactionDto.StartDate > transactionDto.EndDate)
+                {
+                    throw new ArgumentException("Start date cannot be after the end date.");
+                }
+
                 var transaction = new Transaction
                 {
                     Title = title,
