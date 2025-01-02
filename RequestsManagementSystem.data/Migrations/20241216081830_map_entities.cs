@@ -76,6 +76,20 @@ namespace RequestsManagementSystem.Data.Migrations
                 name: "IX_Transactions_EmployeeId",
                 table: "Transactions",
                 column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+               name: "IX_Transactions_SubstituteEmployeeId",
+               table: "Transactions",
+               column: "SubstituteEmployeeId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Transactions_Employees_SubstituteEmployeeId",
+                table: "Transactions",
+                column: "SubstituteEmployeeId",
+                principalTable: "Employees",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
         }
 
         /// <inheritdoc />

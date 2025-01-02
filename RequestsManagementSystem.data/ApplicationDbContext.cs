@@ -14,6 +14,17 @@ namespace RequestsManagementSystem.Data
                 .HasForeignKey(e => e.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+             modelBuilder.Entity<Employee>()
+                .HasMany(e => e.Transactions)
+                .WithOne(t => t.Employee)
+                .HasForeignKey(t => t.EmployeeId); 
+
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.SubstituteEmployee)
+                .WithMany()
+                .HasForeignKey(t => t.SubstituteEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Employee>()
                 .Property(e => e.EmployeeRole)
                 .HasConversion<short>();

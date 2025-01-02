@@ -117,6 +117,8 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     b.HasIndex("EmployeeId");
 
+                    b.HasIndex("SubstituteEmployeeId");
+
                     b.ToTable("Transactions");
                 });
 
@@ -138,7 +140,15 @@ namespace RequestsManagementSystem.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RequestsManagementSystem.Core.Entities.Employee", "SubstituteEmployee")
+                        .WithMany()
+                        .HasForeignKey("SubstituteEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Employee");
+
+                    b.Navigation("SubstituteEmployee");
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>

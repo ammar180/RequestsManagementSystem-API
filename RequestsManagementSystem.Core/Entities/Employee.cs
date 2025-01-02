@@ -26,8 +26,6 @@ namespace RequestsManagementSystem.Core.Entities
 
         // Navigation properties
         public int? ManagerId { get; set; }
-        [ForeignKey("EmployeeId")]
-
         public Employee? Manager { get; set; }
         public ICollection<Employee> ManagerStaff { get; set; } = default!;
         public ICollection<Transaction> Transactions { get; set; } = default!;
