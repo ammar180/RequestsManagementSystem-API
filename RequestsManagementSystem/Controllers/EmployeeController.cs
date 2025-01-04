@@ -105,5 +105,27 @@ namespace RequestsManagementSystem.Controllers
             }
         }
         // reset employee balance
+
+
+        // Get Employees By Department Name
+
+        [HttpGet("GetEmployeesByDepartmentName/{departmentName}")]
+        public async Task<IActionResult> GetEmployeesByDepartmentName(string departmentName)
+        {
+            try
+            {
+                var employees = await _employeeService.GetEmployeesAsync(departmentName);
+                return Ok(employees);
+            }
+            catch (NullReferenceException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
     }
 }

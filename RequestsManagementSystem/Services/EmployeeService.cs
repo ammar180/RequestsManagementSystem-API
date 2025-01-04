@@ -43,6 +43,21 @@ namespace RequestsManagementSystem.Services
             return resut;
         }
 
+        // Get List of Employees By Department Name
+        public async Task<IEnumerable<EmployeeByDepartmentNameDto>> GetEmployeesAsync(string departmentName)
+        {
+            var employees = await _employeeRepository.GetEmployesByDepartment(departmentName);
+            if (!employees.Any())
+            {
+                throw new NullReferenceException("ليس يوجد أي موظفين في هذا القسم");
+            }
+            return employees.Select(x => new EmployeeByDepartmentNameDto
+            {
+                EmployeeId = x.EmployeeId,
+                EmployeeName = x.Name
+            });
+        }
+
         public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials

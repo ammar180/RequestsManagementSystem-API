@@ -65,6 +65,12 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(e => e.Manager) // Include manager information
             .ToListAsync();
     }
+    //Get Employee by Department name
+    public async Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department)
+    {
+       return await _context.Employees
+            .Where(x=>x.DepartmentName == Department).ToListAsync();
+    }
 
     // Update an employee
     public async Task<bool> UpdateAsync(Employee employee)
