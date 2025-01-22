@@ -1,13 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.IdentityModel.Tokens;
-using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Core.Interfaces;
+﻿using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace RequestsManagementSystem.Services
 {

@@ -1,5 +1,4 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+﻿using RequestsManagementSystem.Dtos.EmployeeDtos;
 
 namespace RequestsManagementSystem.Services
 {

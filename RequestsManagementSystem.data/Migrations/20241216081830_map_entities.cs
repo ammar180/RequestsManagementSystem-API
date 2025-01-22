@@ -48,7 +48,7 @@ namespace RequestsManagementSystem.Data.Migrations
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SubstituteEmployeeId = table.Column<int>(type: "int", nullable: false),
-                    Itinerary = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Itinerary = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RespondDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RespondMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<short>(type: "smallint", nullable: false),

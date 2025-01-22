@@ -1,12 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RequestsManagementSystem.Core.Entities;
+﻿using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
-using System.Globalization;
 
 namespace RequestsManagementSystem.Services
 {
@@ -30,8 +26,22 @@ namespace RequestsManagementSystem.Services
                     throw new InvalidOperationException("Can't Determined the type of the transaction.");
 
                 if (transactionDto.StartDate > transactionDto.EndDate)
+                    throw new ArgumentException("لا يمكن تسجيل بطلب تاريخ البدايه قبل تاريخ النهايه.");
+                if (title == TransactionTitle.Leave && transactionDto.StartDate < DateTime.Now)
                 {
-                    throw new ArgumentException("Start date cannot be after the end date.");
+                    throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
+                }
+                if (title == TransactionTitle.Leave && (type == TransactionType.CasualLeave || type == TransactionType.RegularLeave))
+                {
+                    var days = (transactionDto.EndDate - transactionDto.StartDate).Days;
+                    if(type == TransactionType.CasualLeave && days>2)
+                    {
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
+                    }
+                    if (type == TransactionType.PartialDay && days > 21)
+                    {
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
+                    }
                 }
 
                 var transaction = new Transaction
@@ -42,7 +52,7 @@ namespace RequestsManagementSystem.Services
                     EndDate = transactionDto.EndDate,
                     SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
                     Itinerary = transactionDto.Itinerary,
-                    EmployeeId = transactionDto.EmployeeId
+                    EmployeeId = transactionDto.EmployeeId,
                 };
                 await _transactionRepository.AddTransactionAsync(transaction);
                 return true;

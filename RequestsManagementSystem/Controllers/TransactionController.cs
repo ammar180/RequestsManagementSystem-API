@@ -1,9 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 using RequestsManagementSystem.Services;
 
@@ -35,7 +31,7 @@ namespace RequestsManagementSystem.Controllers
             }
 
             bool isAdded = await _transactionService.AddTransactionAsync(transactionDto);
-
+                
             if (isAdded)
             {
                 return Ok(new CreateTransactionResponseDto

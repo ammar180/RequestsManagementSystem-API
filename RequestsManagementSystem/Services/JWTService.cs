@@ -1,5 +1,4 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

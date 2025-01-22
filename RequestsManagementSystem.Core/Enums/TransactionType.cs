@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-
 namespace RequestsManagementSystem.Core.Enums
 {
 	public enum TransactionType

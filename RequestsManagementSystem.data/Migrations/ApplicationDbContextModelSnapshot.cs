@@ -85,7 +85,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Itinerary")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RespondDate")

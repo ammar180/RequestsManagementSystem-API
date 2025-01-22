@@ -13,7 +13,7 @@ namespace RequestsManagementSystem.Core.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int SubstituteEmployeeId { get; set; }
-        public List<string> Itinerary { get; set; } = default!;
+        public List<string>? Itinerary { get; set; } = default!;
         public DateTime? RespondDate { get; set; } = null;
         public string RespondMessage { get; set; } = string.Empty;
         public TransactionStatus Status { get; set; } = 0;

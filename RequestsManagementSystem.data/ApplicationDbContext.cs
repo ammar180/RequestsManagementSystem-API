@@ -43,7 +43,7 @@ namespace RequestsManagementSystem.Data
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Itinerary)
                 .HasConversion(
-                    v => string.Join(';', v),
+                    v => string.Join(';', v?? new List<string> { "" }),
                     v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
                 )
                 .Metadata.SetValueComparer(new ValueComparer<List<string>>(

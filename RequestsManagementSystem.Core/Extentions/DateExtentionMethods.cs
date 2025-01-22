@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-
-
 namespace RequestsManagementSystem.Core.Extentions
 {
     public static class DateExtentionMethods
