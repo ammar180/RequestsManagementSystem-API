@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RequestsManagementSystem.Dtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 using RequestsManagementSystem.Services;
 
@@ -19,11 +20,11 @@ namespace RequestsManagementSystem.Controllers
 
 
         [HttpPost("PostTransaction")]
-        public async Task<ActionResult<CreateTransactionResponseDto>> PostTransaction(CreateTransactionDto transactionDto)
+        public async Task<ActionResult<BaseResponse>> PostTransaction(CreateTransactionDto transactionDto)
         {
             if (transactionDto == null)
             {
-                return BadRequest(new CreateTransactionResponseDto
+                return BadRequest(new BaseResponse
                 {
                     Status = false,
                     Message = "Invalid data."
@@ -31,18 +32,19 @@ namespace RequestsManagementSystem.Controllers
             }
 
             bool isAdded = await _transactionService.AddTransactionAsync(transactionDto);
-                
+          
             if (isAdded)
             {
-                return Ok(new CreateTransactionResponseDto
+                return Ok(new BaseResponse
                 {
                     Status = true,
                     Message = "تم ارسال الطلب بنجاح، برجاء اتظار رد المدير"
                 });
             }
+
             else
             {
-                return BadRequest(new CreateTransactionResponseDto
+                return BadRequest(new BaseResponse
                 {
                     Status = false,
                     Message = "حدث خطأ أثناء ارسال الطلب."
@@ -64,6 +66,7 @@ namespace RequestsManagementSystem.Controllers
                 return BadRequest();
             }
         }
+
         [HttpGet("GetAllTransactionsByEmployeeId/{EmployeeId}")]
         public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int EmployeeId)
         {

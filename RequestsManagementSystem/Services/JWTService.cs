@@ -66,7 +66,7 @@ namespace RequestsManagementSystem.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: isRefreshToken ? DateTime.Now.AddDays(double.Parse(_configuration["Jwt:refreshExpiresInDayes"]!)) : DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
+                expires: isRefreshToken ? DateTime.Now.AddDays(double.Parse(_configuration["Jwt:refreshExpiresInDays"]!)) : DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
                 signingCredentials: credentials
             );
 

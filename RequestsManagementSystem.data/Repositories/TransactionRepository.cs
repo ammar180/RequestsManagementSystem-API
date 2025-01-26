@@ -47,13 +47,23 @@ namespace RequestsManagementSystem.Data.Repositories
         
         }
 
-		public async Task<Transaction?> GetTransactionByIdAsync(int id)
-		{
-            // lazy loading
-            return await _context.Transactions.FindAsync(id);
-		}
+        public async Task<Transaction?> GetTransactionByIdAsync(int id, string[]? includes = null)
+        {
+            IQueryable<Transaction> query = _context.Transactions;
 
-		public async Task SaveChanges()
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.FirstOrDefaultAsync(x => x.TransactionId == id);
+        }
+
+
+        public async Task SaveChanges()
 		{
             await _context.SaveChangesAsync();
 		}

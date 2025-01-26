@@ -7,6 +7,6 @@ namespace RequestsManagementSystem
         Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto);
         Task<EmployeeDto> GetEmployeeDataAsync(int id);
         Task<UpdatePasswordResultDto> UpdatePasswordAsync(UpdatePasswordEmployeeDto EmployeeDto);
-        Task<IEnumerable<EmployeeByDepartmentNameDto>> GetEmployeesAsync(string departmentName);
+        Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName);
     }
 }

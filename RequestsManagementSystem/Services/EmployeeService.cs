@@ -36,14 +36,14 @@ namespace RequestsManagementSystem.Services
         }
 
         // Get List of Employees By Department Name
-        public async Task<IEnumerable<EmployeeByDepartmentNameDto>> GetEmployeesAsync(string departmentName)
+        public async Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName)
         {
             var employees = await _employeeRepository.GetEmployesByDepartment(departmentName);
             if (!employees.Any())
             {
                 throw new NullReferenceException("ليس يوجد أي موظفين في هذا القسم");
             }
-            return employees.Select(x => new EmployeeByDepartmentNameDto
+            return employees.Select(x => new EmployeeIdAndNameDto
             {
                 EmployeeId = x.EmployeeId,
                 EmployeeName = x.Name
@@ -58,7 +58,7 @@ namespace RequestsManagementSystem.Services
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
-                throw new UnauthorizedAccessException("خطأ في كلمة لسر أو كود المستخدم");
+                throw new UnauthorizedAccessException("خطأ في كلمة السر أو كود المستخدم");
             }
             var payload = new EmployeePayLoad
             {

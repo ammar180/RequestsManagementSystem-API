@@ -2,11 +2,12 @@
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 
 namespace RequestsManagementSystem.Services
 {
-	public class TransactionService : ITransactionService
+    public class TransactionService : ITransactionService
     {
 
         private readonly ITransactionRepository _transactionRepository;
@@ -27,21 +28,38 @@ namespace RequestsManagementSystem.Services
 
                 if (transactionDto.StartDate > transactionDto.EndDate)
                     throw new ArgumentException("لا يمكن تسجيل بطلب تاريخ البدايه قبل تاريخ النهايه.");
-                if (title == TransactionTitle.Leave && transactionDto.StartDate < DateTime.Now)
+                if (title == TransactionTitle.Leave && transactionDto.StartDate.Date < DateTime.Now.Date)
                 {
                     throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
                 }
                 if (title == TransactionTitle.Leave && (type == TransactionType.CasualLeave || type == TransactionType.RegularLeave))
                 {
                     var days = (transactionDto.EndDate - transactionDto.StartDate).Days;
-                    if(type == TransactionType.CasualLeave && days>2)
+
+                    if(type == TransactionType.RegularLeave && transactionDto.StartDate.Date < DateTime.Today.Date.AddDays(2))//
                     {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
+                        throw new InvalidOperationException("!يجب تقديم طلب الإجازة قبل يومين على الأقل من تاريخ الإجازة");
                     }
-                    if (type == TransactionType.PartialDay && days > 21)
+
+                    if (type == TransactionType.CasualLeave && days > 2)
                     {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه العارضه لا تتجاوز يومين");
                     }
+                    if (type == TransactionType.RegularLeave && days > 16)
+                    {
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز  واحد وعشرين");
+                    }
+                }
+
+                var employeeTransactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(transactionDto.EmployeeId);
+
+                employeeTransactions = employeeTransactions
+                    .Where(x => x.Title == TransactionTitle.Leave && x.Type == TransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
+                
+                if (employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-1)) &&
+                    employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-2)))
+                {
+                    throw new InvalidOperationException("لقد تعديت الحد الأقصى لطلب إجازة عارضة لثلاث أيام متتالية، يمكنك طلب اجازة اعتيادية");
                 }
 
                 var transaction = new Transaction
@@ -55,6 +73,8 @@ namespace RequestsManagementSystem.Services
                     EmployeeId = transactionDto.EmployeeId,
                 };
                 await _transactionRepository.AddTransactionAsync(transaction);
+                if (transaction.Employee.Manager == null)
+                    throw new NullReferenceException("تم حفظ الطلب بنجاح لاكن لا يوجد مدير لديك لمراجعه الطلب!");
                 return true;
             }
 			catch (Exception)
@@ -147,5 +167,39 @@ namespace RequestsManagementSystem.Services
             }
             await _transactionRepository.SaveChanges();
 		}
-	}
+
+        public async Task<TransactionDto?> GetTransactionByIdAsync(int id)
+        {
+            var transaction = await _transactionRepository.GetTransactionByIdAsync(id,new []{nameof(Transaction.Employee),nameof(Transaction.SubstituteEmployee)});
+            if(transaction is null)
+                return null;
+
+            return new TransactionDto
+            {
+                TransactionId = transaction.TransactionId,
+                CreationDate = transaction.CreationDate,
+                EndDate = transaction.EndDate.ConvertToArabicDate(),
+                Itinerary = transaction.Itinerary,
+                RespondDate = transaction.RespondDate,  
+                RespondMessage = transaction.RespondMessage,    
+                SeenStatus = transaction.SeenStatus.GetEnumDescription(),
+                StartDate = transaction.StartDate.ConvertToArabicDate(),
+                Status = transaction.Status.GetEnumDescription(),
+                SubstituteEmployee = new EmployeeIdAndNameDto
+                {
+                    EmployeeId = transaction.SubstituteEmployee.EmployeeId,
+                    EmployeeName = transaction.SubstituteEmployee.Name
+                },
+                Employee = new EmployeeIdAndNameDto
+                {
+                    EmployeeName = transaction.Employee.Name,
+                    EmployeeId = transaction.Employee.EmployeeId,
+                },
+                Title = transaction.Title.GetEnumDescription(),
+                Type = transaction.Type.GetEnumDescription(),       
+                TakenDays = CalculateTakenDays(transaction),
+            };
+        }
+
+    }
 }
