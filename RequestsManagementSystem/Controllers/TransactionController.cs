@@ -22,32 +22,29 @@ namespace RequestsManagementSystem.Controllers
         [HttpPost("PostTransaction")]
         public async Task<ActionResult<BaseResponse>> PostTransaction(CreateTransactionDto transactionDto)
         {
-            if (transactionDto == null)
+            try
             {
-                return BadRequest(new BaseResponse
-                {
-                    Status = false,
-                    Message = "Invalid data."
-                });
-            }
-
-            bool isAdded = await _transactionService.AddTransactionAsync(transactionDto);
-          
-            if (isAdded)
-            {
+                await _transactionService.AddTransactionAsync(transactionDto);
                 return Ok(new BaseResponse
                 {
                     Status = true,
                     Message = "تم ارسال الطلب بنجاح، برجاء اتظار رد المدير"
                 });
             }
-
-            else
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new BaseResponse
+                return Ok(new BaseResponse
                 {
                     Status = false,
-                    Message = "حدث خطأ أثناء ارسال الطلب."
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return Ok(new BaseResponse
+                {
+                    Status = false,
+                    Message = "عذرا، حدث خطأ غير متوقع"
                 });
             }
         }
@@ -58,6 +55,20 @@ namespace RequestsManagementSystem.Controllers
             try
             {
                 var transaction = await _transactionService.GetStaffTransaction(managerId);
+
+                return Ok(transaction);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+        [HttpGet("GetTransactionDetails/{transactionId}")]
+        public async Task<ActionResult<TransactionDto>> GetTransactionDetails(int transactionId)
+        {
+            try
+            {
+                var transaction = await _transactionService.GetTransactionByIdAsync(transactionId);
 
                 return Ok(transaction);
             }

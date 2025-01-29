@@ -1,4 +1,5 @@
-﻿using RequestsManagementSystem.Core.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
@@ -11,10 +12,12 @@ namespace RequestsManagementSystem.Services
     {
 
         private readonly ITransactionRepository _transactionRepository;
+        private readonly IEmployeeRepository _employeeRepo;
 
-        public TransactionService(ITransactionRepository transactionRepository)
+        public TransactionService(ITransactionRepository transactionRepository, IEmployeeRepository employeeRepo)
         {
             _transactionRepository = transactionRepository;
+            _employeeRepo = employeeRepo;
         }
 
         public async Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto)
@@ -47,7 +50,7 @@ namespace RequestsManagementSystem.Services
                     }
                     if (type == TransactionType.RegularLeave && days > 16)
                     {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز  واحد وعشرين");
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز 16 يوم");
                     }
                 }
 
@@ -72,14 +75,21 @@ namespace RequestsManagementSystem.Services
                     Itinerary = transactionDto.Itinerary,
                     EmployeeId = transactionDto.EmployeeId,
                 };
+                // Add the transaction to database via repository
                 await _transactionRepository.AddTransactionAsync(transaction);
-                if (transaction.Employee.Manager == null)
-                    throw new NullReferenceException("تم حفظ الطلب بنجاح لاكن لا يوجد مدير لديك لمراجعه الطلب!");
+
+                // Check if the employee has a manager
+                var managerId = transaction.Employee?.ManagerId ??
+                                (await _employeeRepo.GetEmployeeById(transaction.EmployeeId))?.ManagerId;
+
+                if (managerId == null)
+                    throw new InvalidOperationException("تم حفظ الطلب بنجاح لكن لا يوجد مدير لديك لمراجعه الطلب!");
+
                 return true;
             }
-			catch (Exception)
+			catch (DbUpdateException)
 			{
-				return false;
+                throw new InvalidOperationException("حدث خطأ أثناء حفظ الطلب، ربما ادخلت موظف غير متاح");
 			}
         }
 
@@ -170,7 +180,7 @@ namespace RequestsManagementSystem.Services
 
         public async Task<TransactionDto?> GetTransactionByIdAsync(int id)
         {
-            var transaction = await _transactionRepository.GetTransactionByIdAsync(id,new []{nameof(Transaction.Employee),nameof(Transaction.SubstituteEmployee)});
+            var transaction = await _transactionRepository.GetTransactionByIdAsync(id, [nameof(Transaction.Employee), nameof(Transaction.SubstituteEmployee)]);
             if(transaction is null)
                 return null;
 

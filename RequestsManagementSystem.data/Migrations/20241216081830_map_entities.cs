@@ -15,8 +15,7 @@ namespace RequestsManagementSystem.Data.Migrations
                 name: "Employees",
                 columns: table => new
                 {
-                    EmployeeId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1000, 1"),
+                    EmployeeId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     RegularLeaveCount = table.Column<float>(type: "real", nullable: false),
