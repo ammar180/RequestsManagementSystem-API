@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using RequestsManagementSystem;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
+using RequestsManagementSystem.Data.Repositories;
 using RequestsManagementSystem.Services;
 using System.Text;
 
@@ -22,7 +23,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseSqlServer(connectionStr));
 builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService,EmployeeService>();
-
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddTransient<IJWTService, JWTService>();
 // Add Authentication with JWT Bearer
 builder.Services.AddAuthentication(options =>
 {

@@ -1,9 +1,15 @@
-﻿namespace RequestsManagementSystem.Core.Enums
+﻿using System.ComponentModel;
+namespace RequestsManagementSystem.Core.Enums
 {
     public enum TransactionStatus
 	{
-		Pending,
-		Approved,
-		Rejected
+		[Description("معلق")]
+        Pending,
+        [Description("مقبول")]
+        Approved,
+        [Description("مرفوض")]
+        Rejected,
+        [Description("معدل")]
+        Edited,
 	}
 }

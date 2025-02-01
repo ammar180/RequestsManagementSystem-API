@@ -65,6 +65,12 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(e => e.Manager) // Include manager information
             .ToListAsync();
     }
+    //Get Employee by Department name
+    public async Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department)
+    {
+       return await _context.Employees
+            .Where(x=>x.DepartmentName == Department).ToListAsync();
+    }
 
     // Update an employee
     public async Task<bool> UpdateAsync(Employee employee)
@@ -77,7 +83,8 @@ public class EmployeeRepository : IEmployeeRepository
             // Update fields
             existingEmployee.Name = employee.Name;
             existingEmployee.Password = employee.Password;
-            existingEmployee.VacationsBalance = employee.VacationsBalance;
+            existingEmployee.RegularLeaveCount = employee.RegularLeaveCount;
+            existingEmployee.CasualLeaveCount = employee.CasualLeaveCount;
             existingEmployee.DateOfEmployment = employee.DateOfEmployment;
             existingEmployee.EmployeeRole = employee.EmployeeRole;
             existingEmployee.DepartmentName = employee.DepartmentName;
