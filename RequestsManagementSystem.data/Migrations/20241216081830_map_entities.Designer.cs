@@ -12,8 +12,8 @@ using RequestsManagementSystem.Data;
 namespace RequestsManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241216081830_map_entities")]
-    partial class map_entities
+    [Migration("20250201152952_map-entities")]
+    partial class mapentities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,8 +33,11 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
 
-                    b.Property<int>("CasualLeaveCount")
+                    b.Property<int>("AdditonalCasualLeaveCount")
                         .HasColumnType("int");
+
+                    b.Property<double>("AdditonalRegularLeaveCount")
+                        .HasColumnType("float");
 
                     b.Property<DateOnly>("DateOfEmployment")
                         .HasColumnType("date");
@@ -43,6 +46,13 @@ namespace RequestsManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("EmployeeCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("EmployeeLevelId")
+                        .HasColumnType("int");
 
                     b.Property<short>("EmployeeRole")
                         .HasColumnType("smallint");
@@ -60,14 +70,76 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<float>("RegularLeaveCount")
-                        .HasColumnType("real");
-
                     b.HasKey("EmployeeId");
+
+                    b.HasIndex("EmployeeCode")
+                        .IsUnique();
+
+                    b.HasIndex("EmployeeLevelId");
 
                     b.HasIndex("ManagerId");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("RequestsManagementSystem.Core.Entities.EmployeeLevel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("CasualLeavePerMonth")
+                        .HasColumnType("real");
+
+                    b.Property<int>("CasualLeavePerYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LevelDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LevelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("RegularLeaveperMonth")
+                        .HasColumnType("real");
+
+                    b.Property<int>("RegularLeaveperYear")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmployeeLevel");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CasualLeavePerMonth = 0f,
+                            CasualLeavePerYear = 6,
+                            LevelDescription = "الفأة أ",
+                            LevelName = "A",
+                            OrderId = 1,
+                            RegularLeaveperMonth = 1f,
+                            RegularLeaveperYear = 15
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CasualLeavePerMonth = 0f,
+                            CasualLeavePerYear = 6,
+                            LevelDescription = "الفأة ب",
+                            LevelName = "B",
+                            OrderId = 2,
+                            RegularLeaveperMonth = 2f,
+                            RegularLeaveperYear = 24
+                        });
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Transaction", b =>
@@ -88,7 +160,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Itinerary")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RespondDate")
@@ -120,15 +191,25 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     b.HasIndex("EmployeeId");
 
+                    b.HasIndex("SubstituteEmployeeId");
+
                     b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>
                 {
+                    b.HasOne("RequestsManagementSystem.Core.Entities.EmployeeLevel", "EmployeeLevel")
+                        .WithMany()
+                        .HasForeignKey("EmployeeLevelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("RequestsManagementSystem.Core.Entities.Employee", "Manager")
                         .WithMany("ManagerStaff")
                         .HasForeignKey("ManagerId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("EmployeeLevel");
 
                     b.Navigation("Manager");
                 });
@@ -141,7 +222,15 @@ namespace RequestsManagementSystem.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RequestsManagementSystem.Core.Entities.Employee", "SubstituteEmployee")
+                        .WithMany()
+                        .HasForeignKey("SubstituteEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Employee");
+
+                    b.Navigation("SubstituteEmployee");
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>

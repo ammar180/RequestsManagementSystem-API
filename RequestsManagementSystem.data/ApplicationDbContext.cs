@@ -1,23 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Configuration;
 using RequestsManagementSystem.Core.Entities;
 
 namespace RequestsManagementSystem.Data
 {
     public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     {
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.Manager)
                 .WithMany(m => m.ManagerStaff)
                 .HasForeignKey(e => e.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-             modelBuilder.Entity<Employee>()
-                .HasMany(e => e.Transactions)
-                .WithOne(t => t.Employee)
-                .HasForeignKey(t => t.EmployeeId); 
+            modelBuilder.Entity<Employee>()
+               .HasMany(e => e.Transactions)
+               .WithOne(t => t.Employee)
+               .HasForeignKey(t => t.EmployeeId);
+            
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.EmployeeCode)
+                .IsUnique();
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.SubstituteEmployee)
@@ -25,9 +30,35 @@ namespace RequestsManagementSystem.Data
                 .HasForeignKey(t => t.SubstituteEmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Seed data for EmployeeLevel
+            modelBuilder.Entity<EmployeeLevel>().HasData(
+                new EmployeeLevel
+                {
+                    Id = 1,
+                    LevelName = "A",
+                    LevelDescription = "الفئة أ",
+                    RegularLeaveperYear = 15,
+                    RegularLeaveperMonth = 15f / 12f,
+                    CasualLeavePerYear = 6,
+                    CasualLeavePerMonth = 6f / 12f,
+                    OrderId = 1
+                },
+                new EmployeeLevel
+                {
+                    Id = 2,
+                    LevelName = "B",
+                    LevelDescription = "الفئة ب",
+                    RegularLeaveperYear = 24,
+                    RegularLeaveperMonth = 24f / 12f,
+                    CasualLeavePerYear = 6,
+                    CasualLeavePerMonth = 6f / 12f,
+                    OrderId = 2
+                }
+            );
+
             modelBuilder.Entity<Employee>()
-                .Property(e => e.EmployeeRole)
-                .HasConversion<short>();
+                    .Property(e => e.EmployeeRole)
+                    .HasConversion<short>();
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Title)
                 .HasConversion<short>();
@@ -43,7 +74,7 @@ namespace RequestsManagementSystem.Data
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Itinerary)
                 .HasConversion(
-                    v => string.Join(';', v?? new List<string> { "" }),
+                    v => string.Join(';', v ?? new List<string> { "" }),
                     v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
                 )
                 .Metadata.SetValueComparer(new ValueComparer<List<string>>(
