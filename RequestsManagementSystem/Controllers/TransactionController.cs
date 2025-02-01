@@ -18,7 +18,6 @@ namespace RequestsManagementSystem.Controllers
             _transactionService = transactionService;
         }
 
-
         [HttpPost("PostTransaction")]
         public async Task<ActionResult<BaseResponse>> PostTransaction(CreateTransactionDto transactionDto)
         {
@@ -106,5 +105,22 @@ namespace RequestsManagementSystem.Controllers
 			}
 		}
 
-	}
+        [HttpDelete("RemoveTransactionAsync")]
+        public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
+        {
+            try
+            {
+                var result = await _transactionService.CancelTransactionAsync(transactionId);
+
+                if (!result.Success)
+                    return BadRequest(result.Message);
+
+                return Ok(result.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"حدث خطأ: {ex.Message}");
+            }
+        }
+    }
 }

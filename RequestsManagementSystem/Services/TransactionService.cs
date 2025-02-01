@@ -20,6 +20,21 @@ namespace RequestsManagementSystem.Services
             _employeeRepo = employeeRepo;
         }
 
+        public async Task<(bool Success, string Message)> CancelTransactionAsync(int transactionId)
+        {
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+
+            if (transaction.Status == TransactionStatus.Approved || transaction.Status == TransactionStatus.Rejected)
+            {
+                throw new InvalidOperationException("لا يمكن إلغاء أو حذف الطلب بعد الموافقة عليه أو رفضه");
+            }
+
+            var remove = await _transactionRepository.RemoveTransactionAsync(transactionId);
+
+            return remove ? (true, "تم إلغاء الطلب بنجاح.") : (false, "فشل في إلغاء الطلب .");
+        }
+
+
         public async Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto)
         {
 			try
@@ -211,5 +226,6 @@ namespace RequestsManagementSystem.Services
             };
         }
 
+       
     }
 }

@@ -27,6 +27,24 @@ namespace RequestsManagementSystem.Data.Repositories
             }
         }
 
+        public async Task<Transaction?> GetTransactionById(int transactionId)
+        {
+            return await _context.Transactions.FindAsync(transactionId);
+        }
+
+        public async Task<bool> RemoveTransactionAsync(int transactionId)
+        {
+            var transaction = await _context.Transactions.FindAsync(transactionId);
+            if (transaction == null)
+            {
+                return false;
+            }
+
+            _context.Transactions.Remove(transaction);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId)
         {
             return await _context.Employees
@@ -61,7 +79,6 @@ namespace RequestsManagementSystem.Data.Repositories
 
             return await query.FirstOrDefaultAsync(x => x.TransactionId == id);
         }
-
 
         public async Task SaveChanges()
 		{
