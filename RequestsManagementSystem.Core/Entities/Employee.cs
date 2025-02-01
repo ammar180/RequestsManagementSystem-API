@@ -1,6 +1,5 @@
 ﻿using RequestsManagementSystem.Core.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RequestsManagementSystem.Core.Entities
 {
@@ -15,7 +14,8 @@ namespace RequestsManagementSystem.Core.Entities
         [StringLength(200)]
         public string Password { get; set; } = string.Empty;
 
-        public int VacationsBalance { get; set; }
+        public float RegularLeaveCount { get; set; } = 0;
+        public int CasualLeaveCount { get; set; } = 0;
 
         public DateOnly DateOfEmployment { get; set; }
         public Roles EmployeeRole { get; set; }
@@ -25,8 +25,6 @@ namespace RequestsManagementSystem.Core.Entities
 
         // Navigation properties
         public int? ManagerId { get; set; }
-        [ForeignKey("EmployeeId")]
-
         public Employee? Manager { get; set; }
         public ICollection<Employee> ManagerStaff { get; set; } = default!;
         public ICollection<Transaction> Transactions { get; set; } = default!;

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -12,9 +13,11 @@ namespace RequestsManagementSystem.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
-        public EmployeeController(IEmployeeService employeeService)
+        private readonly IJWTService _jWTService;
+        public EmployeeController(IEmployeeService employeeService, IJWTService jWT)
         {
             _employeeService = employeeService;
+            _jWTService = jWT;
         }
 
         [HttpPost("Login")]
@@ -30,7 +33,7 @@ namespace RequestsManagementSystem.Controllers
             {
                 var result= new LoginResultDto
                 {
-                    message = ex.Message,
+                    Message = ex.Message,
                     Status = false
                 };
                 return Ok(result);
@@ -62,7 +65,7 @@ namespace RequestsManagementSystem.Controllers
             }
         }
         // get employee profile
-        [HttpGet("Profile{id}")]
+        [HttpGet("Profile/{id}")]
         public async Task<ActionResult<EmployeeDto>> GetEmployeeData(int id)
         {
             try
@@ -79,6 +82,50 @@ namespace RequestsManagementSystem.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpGet("NewToken")]
+        [AllowAnonymous]
+        public ActionResult<string> GetNewToken(string refreshToken)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(refreshToken) || _jWTService.IsTokenExpired(refreshToken))
+                {
+                    return Unauthorized();
+                }
+
+                var payload = _jWTService.GetEmployeePayloadFromToken(refreshToken);
+
+                var token = _jWTService.GenerateJwtToken(payload);
+
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         // reset employee balance
+
+
+        // Get Employees By Department Name
+
+        [HttpGet("GetEmployeesByDepartmentName/{departmentName}")]
+        public async Task<IActionResult> GetEmployeesByDepartmentName(string departmentName)
+        {
+            try
+            {
+                var employees = await _employeeService.GetEmployeesAsync(departmentName);
+                return Ok(employees);
+            }
+            catch (NullReferenceException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
     }
 }

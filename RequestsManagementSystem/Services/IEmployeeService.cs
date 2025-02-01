@@ -1,5 +1,4 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+﻿using RequestsManagementSystem.Dtos.EmployeeDtos;
 
 namespace RequestsManagementSystem
 {
@@ -8,5 +7,6 @@ namespace RequestsManagementSystem
         Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto);
         Task<EmployeeDto> GetEmployeeDataAsync(int id);
         Task<UpdatePasswordResultDto> UpdatePasswordAsync(UpdatePasswordEmployeeDto EmployeeDto);
+        Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName);
     }
 }

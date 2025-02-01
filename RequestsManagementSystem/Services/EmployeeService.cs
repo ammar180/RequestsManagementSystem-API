@@ -1,13 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.IdentityModel.Tokens;
-using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Core.Interfaces;
+﻿using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace RequestsManagementSystem.Services
 {
@@ -15,18 +7,20 @@ namespace RequestsManagementSystem.Services
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IConfiguration _configuration;
+        private readonly IJWTService _JWT;
 
-        public EmployeeService(IEmployeeRepository employeeRepository, IConfiguration configuration)
+        public EmployeeService(IEmployeeRepository employeeRepository, IConfiguration configuration, IJWTService jWT)
         {
             _employeeRepository = employeeRepository;
             _configuration = configuration;
+            _JWT = jWT;
         }
 
         public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(id) ?? throw new NullReferenceException("المستخدم غير موجود");
+            var employee = await _employeeRepository.GetEmployeeById(id) ?? throw new NullReferenceException("المستخدم غير موجود");
             employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             var resut = new EmployeeDto
             {
@@ -35,41 +29,61 @@ namespace RequestsManagementSystem.Services
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
                 ManagerName= employee.Manager?.Name ?? "",
-                CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
-                RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+                RegularLeaveCount = float.Parse(_configuration["TotalRegularLeave"]!) - employee.RegularLeaveCount,
+                CasualLeaveCount = int.Parse(_configuration["TotalCasualLeave"]!) - employee.CasualLeaveCount,
             };
             return resut;
+        }
+
+        // Get List of Employees By Department Name
+        public async Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName)
+        {
+            var employees = await _employeeRepository.GetEmployesByDepartment(departmentName);
+            if (!employees.Any())
+            {
+                throw new NullReferenceException("ليس يوجد أي موظفين في هذا القسم");
+            }
+            return employees.Select(x => new EmployeeIdAndNameDto
+            {
+                EmployeeId = x.EmployeeId,
+                EmployeeName = x.Name
+            });
         }
 
         public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials
 
-            var employee = await _employeeRepository.GetEmployeeByIdWithTransaction(loginEmployeeDto.EmployeeId);
+            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
-                throw new UnauthorizedAccessException("خطأ في كلمة لسر أو كود المستخدم");
+                throw new UnauthorizedAccessException("خطأ في كلمة السر أو كود المستخدم");
             }
-
-            var token = GenerateJwtToken(employee);
-            var refreshToken = GenerateJwtToken(employee, true);
+            var payload = new EmployeePayLoad
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeName = employee.Name,
+                EmployeeRole = employee.EmployeeRole.ToString(),
+            };
+            var token = _JWT.GenerateJwtToken(payload);
+            var refreshToken = _JWT.GenerateJwtToken(payload, true);
             employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             return new LoginResultDto
-            { 
+            {
                 token= token,
                 refreshToken = refreshToken,
-                EmployeeDto=new EmployeeDto
+                EmployeeDto= new EmployeeDto
                 {
                     EmployeeId = employee.EmployeeId,
                     EmployeeName = employee.Name,
                     DepartmentName = employee.DepartmentName,
                     DateOfEmployment = employee.DateOfEmployment,
                     ManagerName = employee.Manager?.Name ?? "",
-                    CasualLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.CasualLeave),
-                    RegularLeaveCount = employee.Transactions.Count(i => i.Type == TransactionType.RegularLeave)
+                    RegularLeaveCount = float.Parse(_configuration["TotalRegularLeave"]!) - employee.RegularLeaveCount,
+                    CasualLeaveCount = int.Parse(_configuration["TotalCasualLeave"]!) - employee.CasualLeaveCount,
                 },
-                message="تم تسجيل الدخول بنجاح",
+                Message="تم تسجيل الدخول بنجاح",
                 Status=true
             };
         }
@@ -158,29 +172,6 @@ namespace RequestsManagementSystem.Services
                     message = "حدث خطأ اثناء عمليه تحديث كلمه المرور",
                 };
             }
-        }
-
-        private string GenerateJwtToken(Employee employee, bool isRefreshToken = false)
-        {
-            var claims = new List<Claim>
-            {
-				new(ClaimTypes.Name, employee.Name),
-                new(ClaimTypes.Role, employee.EmployeeRole.ToString()),
-                new(ClaimTypes.NameIdentifier, employee.EmployeeId.ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: isRefreshToken ? DateTime.Now.AddDays(double.Parse(_configuration["Jwt:refreshExpiresInDayes"]!)) : DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
