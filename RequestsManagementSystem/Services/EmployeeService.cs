@@ -8,14 +8,12 @@ namespace RequestsManagementSystem.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
-        private readonly ITransactionRepository _transacctionRepo;
         private readonly IJWTService _JWT;
 
-        public EmployeeService(IEmployeeRepository employeeRepository, ITransactionRepository transacctionRepo, IJWTService jWT)
+        public EmployeeService(IEmployeeRepository employeeRepository, IJWTService jWT)
         {
             _employeeRepository = employeeRepository;
             _JWT = jWT;
-            _transacctionRepo = transacctionRepo;
         }
 
         public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
@@ -24,6 +22,7 @@ namespace RequestsManagementSystem.Services
             var employee = await _employeeRepository.GetEmployeeById(id,
                     [nameof(Employee.Manager), nameof(Employee.Transactions), nameof(Employee.EmployeeLevel)]
                     ) ?? throw new NullReferenceException("المستخدم غير موجود");
+            var balanceResult = GetEmployeeBalance(employee);
             var resut = new EmployeeDto
             {
                 EmployeeId = employee.EmployeeId,
@@ -31,8 +30,8 @@ namespace RequestsManagementSystem.Services
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
                 ManagerName= employee.Manager?.Name ?? "",
-                RegularLeaveCount = GetEmployeeBalance(employee).ToString("0.00"),
-                CasualLeaveCount = GetEmployeeBalance(employee, TransactionType.CasualLeave).ToString("0.00"),
+                RegularLeaveCount = balanceResult.RegularBalance.ToString("0.00"),
+                CasualLeaveCount = balanceResult.CasualBalance.ToString("0.00"),
             };
             return resut;
         }
@@ -166,35 +165,35 @@ namespace RequestsManagementSystem.Services
                 };
             }
         }
-        public double GetEmployeeBalance(Employee employee, TransactionType t_type = TransactionType.RegularLeave, DateOnly? p_startDate = null, DateOnly? p_endDate = null)
+        public (double CasualBalance, double RegularBalance) GetEmployeeBalance(Employee employee, DateOnly? p_startDate = null, DateOnly? p_endDate = null)
         {
             // Set default start and end dates if not provided
             p_startDate ??= new DateOnly(DateTime.Now.Year, 1, 1);
             p_endDate ??= DateOnly.FromDateTime(DateTime.Now.Date);
 
-            // Determine leave type and calculate balance
-            double leavesPerMonth = t_type == TransactionType.CasualLeave
-                ? employee.EmployeeLevel.CasualLeavePerMonth
-                : employee.EmployeeLevel.RegularLeaveperMonth;
+            double totalCasualLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, (DateOnly)p_startDate, (DateOnly)p_endDate, employee.AdditonalCasualLeaveCount);
+            double totalRegularLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, (DateOnly)p_startDate, (DateOnly)p_endDate, employee.AdditonalRegularLeaveCount);
+            var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), (DateOnly)p_startDate, p_endDate);
 
-            double additionalLeaveCount = t_type == TransactionType.CasualLeave
-                ? employee.AdditonalCasualLeaveCount
-                : employee.AdditonalRegularLeaveCount;
+            var casualBalance = totalCasualLeaves - consumedLeaves.FirstOrDefault(c => c.type == TransactionType.CasualLeave).totalConsumed;
+            var regularBalance = totalRegularLeaves - consumedLeaves.Where(c => c.type == TransactionType.RegularLeave || c.type == TransactionType.HalfDay || c.type == TransactionType.QuarterDay).Sum(x => x.totalConsumed);
 
-            double totalLeaves = CalculateLeaveInMonthRange(leavesPerMonth, employee.DateOfEmployment, (DateOnly)p_startDate, (DateOnly)p_endDate, additionalLeaveCount);
-            double consumedLeaves = TotalConsumedLeaves(t_type, employee.Transactions.AsQueryable(), (DateOnly)p_startDate, p_endDate);
-
-            return totalLeaves - consumedLeaves;
+            return (casualBalance, regularBalance);
         }
 
-        private static double TotalConsumedLeaves(TransactionType t_type, IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly? p_endDate = null)
+        private static IEnumerable<(TransactionType type, double totalConsumed)> TotalConsumedLeaves(IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly? p_endDate = null)
         {
-            return transactions
+            var result = transactions
                 .Where(t => t.Status == TransactionStatus.Approved
-                            && t.Type == t_type || (t_type == TransactionType.RegularLeave && t.Type == TransactionType.QuarterDay || t.Type == TransactionType.HalfDay)
+                            && t.Title == TransactionTitle.Leave
                             && DateOnly.FromDateTime(t.StartDate) >= p_startdate
                             && (!p_endDate.HasValue || DateOnly.FromDateTime(t.EndDate) <= p_endDate.Value))
-                .Sum(t => CalculateLeaveDays(t));
+                .Select(t => new { type = t.Type, unit = CalculateLeaveDays(t) })
+                .GroupBy(t => t.type)
+                .Select(g => new { type = g.Key, total = g.Sum(t => t.unit) })
+                .ToList();
+
+            return result.Select(item => (item.type, item.total));
         }
         public static double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate, double balance = 0)
         {
@@ -218,12 +217,14 @@ namespace RequestsManagementSystem.Services
         }
         private static double CalculateLeaveDays(Transaction t)
         {
-            double days = (t.EndDate - t.StartDate).Days;
+            double days = 0;
 
             if (t.Type == TransactionType.HalfDay)
                 days += 0.5;
             else if (t.Type == TransactionType.QuarterDay)
                 days += 0.25;
+            else
+                days = (t.EndDate - t.StartDate).Days;
 
             return days;
         }
