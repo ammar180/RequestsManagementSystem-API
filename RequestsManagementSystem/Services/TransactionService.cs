@@ -34,41 +34,10 @@ namespace RequestsManagementSystem.Services
             return remove ? (true, "تم إلغاء الطلب بنجاح.") : (false, "فشل في إلغاء الطلب .");
         }
 
-
         public async Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto)
         {
 			try
 			{
-                if (!Enum.TryParse(transactionDto.Title, true, out TransactionTitle title))
-                    throw new InvalidOperationException("Can't Determined the title of the transaction.");
-                if (!Enum.TryParse(transactionDto.Type, true, out TransactionType type))
-                    throw new InvalidOperationException("Can't Determined the type of the transaction.");
-
-                if (transactionDto.StartDate > transactionDto.EndDate)
-                    throw new ArgumentException("لا يمكن تسجيل بطلب تاريخ البدايه قبل تاريخ النهايه.");
-                if (title == TransactionTitle.Leave && transactionDto.StartDate.Date < DateTime.Now.Date)
-                {
-                    throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح");
-                }
-                if (title == TransactionTitle.Leave && (type == TransactionType.CasualLeave || type == TransactionType.RegularLeave))
-                {
-                    var days = (transactionDto.EndDate - transactionDto.StartDate).Days;
-
-                    if(type == TransactionType.RegularLeave && transactionDto.StartDate.Date < DateTime.Today.Date.AddDays(2))//
-                    {
-                        throw new InvalidOperationException("!يجب تقديم طلب الإجازة قبل يومين على الأقل من تاريخ الإجازة");
-                    }
-
-                    if (type == TransactionType.CasualLeave && days > 2)
-                    {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه العارضه لا تتجاوز يومين");
-                    }
-                    if (type == TransactionType.RegularLeave && days > 16)
-                    {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز 16 يوم");
-                    }
-                }
-
                 var employeeTransactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(transactionDto.EmployeeId);
 
                 employeeTransactions = employeeTransactions
@@ -82,8 +51,8 @@ namespace RequestsManagementSystem.Services
 
                 var transaction = new Transaction
                 {
-                    Title = title,
-                    Type = type,
+                    Title = Enum.Parse<TransactionTitle>(transactionDto.Title, true),
+                    Type = Enum.Parse<TransactionType>(transactionDto.Type, true),
                     StartDate = transactionDto.StartDate,
                     EndDate = transactionDto.EndDate,
                     SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
@@ -203,10 +172,10 @@ namespace RequestsManagementSystem.Services
             {
                 TransactionId = transaction.TransactionId,
                 CreationDate = transaction.CreationDate,
-                EndDate = transaction.EndDate.ConvertToArabicDate(),
+                EndDate = transaction.StartDate == transaction.EndDate ? "" : transaction.EndDate.ConvertToArabicDate(),
                 Itinerary = transaction.Itinerary,
                 RespondDate = transaction.RespondDate,  
-                RespondMessage = transaction.RespondMessage,    
+                RespondMessage =  transaction.RespondMessage,    
                 SeenStatus = transaction.SeenStatus.GetEnumDescription(),
                 StartDate = transaction.StartDate.ConvertToArabicDate(),
                 Status = transaction.Status.GetEnumDescription(),
