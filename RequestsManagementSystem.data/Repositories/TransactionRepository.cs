@@ -84,5 +84,18 @@ namespace RequestsManagementSystem.Data.Repositories
 		{
             await _context.SaveChangesAsync();
 		}
-	}
+
+        public async Task<bool> UpdateTransactionAsync(Transaction transaction)
+        {
+            try
+            {
+                _context.Transactions.Update(transaction);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+    }
 }
