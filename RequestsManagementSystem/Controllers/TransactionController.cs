@@ -105,6 +105,16 @@ namespace RequestsManagementSystem.Controllers
 			}
 		}
 
+        [HttpPut("EditTransaction")]
+        public async Task<IActionResult> EditTransaction(int transactionId,UpdateTransactionDto transactionDto)
+        {
+            var result = await _transactionService.EditTransactionAsync(transactionId, transactionDto);
+            if (!result.Status)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+
         [HttpDelete("RemoveTransactionAsync")]
         public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
         {

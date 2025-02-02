@@ -3,6 +3,7 @@ using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Dtos;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 
@@ -75,6 +76,63 @@ namespace RequestsManagementSystem.Services
 			{
                 throw new InvalidOperationException("حدث خطأ أثناء حفظ الطلب، ربما ادخلت موظف غير متاح");
 			}
+        }
+
+        public async Task<BaseResponse> EditTransactionAsync(int transactionId, UpdateTransactionDto transactionDto)
+        {
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+            try
+            {
+                if (!Enum.TryParse(transactionDto.Title, true, out TransactionTitle title))
+                    return new BaseResponse { Status = false, Message = "عنوان الطلب غير صالح" };
+
+                if (!Enum.TryParse(transactionDto.Type, true, out TransactionType type))
+                    return new BaseResponse { Status = false, Message = "نوع الطلب غير صالح" };
+
+                if (transactionDto.StartDate > transactionDto.EndDate)
+                    return new BaseResponse { Status = false, Message = "لا يمكن أن يكون تاريخ البدء بعد تاريخ الانتهاء" };
+
+                if (title == TransactionTitle.Leave && transactionDto.StartDate.Date < DateTime.Today)
+                    return new BaseResponse { Status = false, Message = "!برجاء إدخال تاريخ  بدايه الاجازه بشكل صحيح" };
+
+
+                if (title == TransactionTitle.Leave && (type == TransactionType.CasualLeave || type == TransactionType.RegularLeave))
+                {
+                    var days = (transactionDto.EndDate - transactionDto.StartDate).Days;
+
+
+                    if (type == TransactionType.CasualLeave && days > 2)
+                    {
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه العارضه لا تتجاوز يومين");
+                    }
+                    if (type == TransactionType.RegularLeave && days > 16)
+                    {
+                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز 16 يوم");
+                    }
+                }
+
+                transaction.Title = title;
+                transaction.Type = type;
+                transaction.StartDate = transactionDto.StartDate;
+                transaction.EndDate = transactionDto.EndDate;
+                transaction.SubstituteEmployeeId = transactionDto.SubstituteEmployeeId;
+                transaction.Itinerary = transactionDto.Itinerary;
+
+
+                var updated = await _transactionRepository.UpdateTransactionAsync(transaction);
+                if (!updated)
+                    return new BaseResponse { Status = false, Message = "فشل في تحديث الطلب" };
+
+                return new BaseResponse { Status = true, Message = "تم تحديث الطلب بنجاح" };
+            }
+            catch (DbUpdateException)
+            {
+                return new BaseResponse { Status = false, Message = " حدث خطأ أثناء حفظ الطلب في قاعدة البيانات" };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse { Status = false, Message = "حدث خطأ غير متوقع: " + ex.Message };
+            }
         }
 
         public async Task<IEnumerable<GetTransactionByEmployeeDto>> GetAllTransactionsByEmployeeId(int EmployeeId)
@@ -195,6 +253,5 @@ namespace RequestsManagementSystem.Services
             };
         }
 
-       
     }
 }

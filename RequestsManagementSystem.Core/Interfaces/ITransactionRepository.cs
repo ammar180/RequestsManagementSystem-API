@@ -6,6 +6,7 @@ namespace RequestsManagementSystem.Core.Interfaces
 	{
         Task<Transaction?> GetTransactionById(int transactionId);
         Task<bool> RemoveTransactionAsync(int transactionId);
+        Task<bool> UpdateTransactionAsync(Transaction transaction);
         Task<bool> AddTransactionAsync(Transaction transaction);
         Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId);
         Task<IEnumerable<Transaction>> GetTransactionByEmployeeIdAsync(int EmployeeId);
