@@ -252,6 +252,35 @@ namespace RequestsManagementSystem.Services
                 TakenDays = CalculateTakenDays(transaction),
             };
         }
+        public async Task<string> UpdateTransactionStatusAsync(int id, UpdateTransactionStatusDto request)
+        {
+            //from string to enum
+            if (!Enum.TryParse(request.Status, true, out TransactionStatus status))
+                throw new ArgumentException("Can't Determined the type of the transaction.");
+
+            // If rejected, responseMessage is required
+            if (status == TransactionStatus.Rejected && string.IsNullOrWhiteSpace(request.ResponceMessage))
+            {
+                throw new InvalidOperationException("رجاء تقديم رسالة لسبب الرفض.");
+            }
+
+            // Fetch transaction from database
+            var transaction = await _transactionRepository.GetTransactionByIdAsync(id);
+
+            if (transaction == null)
+            {
+                throw new KeyNotFoundException("Transaction not found.");
+            }
+
+            // Update transaction status
+            transaction.Status = status;
+            transaction.RespondMessage = request.ResponceMessage;
+            transaction.RespondDate = DateTime.UtcNow;
+
+            await _transactionRepository.UpdateTransactionAsync(transaction);
+
+            return $"تم تسجيل الرد بنجاح حالة الطلب: {status.GetEnumDescription()}";
+        }
 
     }
 }

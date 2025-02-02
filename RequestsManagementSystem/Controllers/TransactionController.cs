@@ -132,5 +132,31 @@ namespace RequestsManagementSystem.Controllers
                 return StatusCode(500, $"حدث خطأ: {ex.Message}");
             }
         }
+        [HttpPut("SetStatus/{id}")]
+        public async Task<IActionResult> SetTransactionStatus(int id, UpdateTransactionStatusDto request)
+        {
+            try
+            {
+                var result = await _transactionService.UpdateTransactionStatusAsync(id, request);
+                return Ok(new BaseResponse { Status = true, Message = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new BaseResponse { Status = false, Message = "خطأ غير متوقع" });
+            }
+        }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Enums;
 
 namespace RequestsManagementSystem.Data.Repositories
 {
@@ -52,6 +53,7 @@ namespace RequestsManagementSystem.Data.Repositories
                 .ThenInclude(e=> e.Employee)
                 .Where(e => e.ManagerId == managerId)
                 .SelectMany(e => e.Transactions)
+                .Where(t => t.Status == TransactionStatus.Edited)
                 .ToListAsync();
         }
 

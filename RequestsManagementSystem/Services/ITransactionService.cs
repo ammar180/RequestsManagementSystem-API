@@ -14,6 +14,7 @@ namespace RequestsManagementSystem.Services
 		Task<IEnumerable<GetTransactionByEmployeeDto>> GetAllTransactionsByEmployeeId(int EmployeeId);
 		Task SetSeenStatus(int id, string whoSeen);
         Task<TransactionDto?> GetTransactionByIdAsync(int id);
+        Task<string> UpdateTransactionStatusAsync(int id, UpdateTransactionStatusDto request);
 
     }
 }
