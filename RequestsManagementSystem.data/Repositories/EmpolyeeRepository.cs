@@ -46,6 +46,21 @@ public class EmployeeRepository : IEmployeeRepository
     }
 
     // Get an employee by ID
+    public async Task<Employee?> GetEmployeeByCode(string code, string[]? includes = null)
+    {
+        IQueryable<Employee> query = _context.Employees;
+
+        if (includes != null)
+        {
+            foreach (var navigation in includes)
+            {
+                query = query.Include(navigation);
+            }
+        }
+
+        return await query.FirstOrDefaultAsync(e => e.Code == code);
+    }
+    // Get an employee by Id
     public async Task<Employee?> GetEmployeeById(int id, string[]? includes = null)
     {
         IQueryable<Employee> query = _context.Employees;
@@ -58,7 +73,7 @@ public class EmployeeRepository : IEmployeeRepository
             }
         }
 
-        return await query.FirstOrDefaultAsync(e => e.EmployeeId == id);
+        return await query.FirstOrDefaultAsync(e => e.Id == id);
     }
     //Get Employee by Department name
     public async Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department)
@@ -72,14 +87,12 @@ public class EmployeeRepository : IEmployeeRepository
     {
         try
         {
-            var existingEmployee = await _context.Employees.FindAsync(employee.EmployeeId);
+            var existingEmployee = await _context.Employees.FindAsync(employee.Id);
             if (existingEmployee == null) return false;
 
             // Update fields
             existingEmployee.Name = employee.Name;
             existingEmployee.Password = employee.Password;
-            existingEmployee.AdditonalRegularLeaveCount = employee.AdditonalRegularLeaveCount;
-            existingEmployee.AdditonalCasualLeaveCount = employee.AdditonalCasualLeaveCount;
             existingEmployee.DateOfEmployment = employee.DateOfEmployment;
             existingEmployee.EmployeeRole = employee.EmployeeRole;
             existingEmployee.DepartmentName = employee.DepartmentName;

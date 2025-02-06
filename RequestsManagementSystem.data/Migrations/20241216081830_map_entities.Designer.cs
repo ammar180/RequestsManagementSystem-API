@@ -12,8 +12,8 @@ using RequestsManagementSystem.Data;
 namespace RequestsManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250201152952_map-entities")]
-    partial class mapentities
+    [Migration("20250206073738_map_entities")]
+    partial class map_entities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,17 +27,15 @@ namespace RequestsManagementSystem.Data.Migrations
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>
                 {
-                    b.Property<int>("EmployeeId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AdditonalCasualLeaveCount")
-                        .HasColumnType("int");
-
-                    b.Property<double>("AdditonalRegularLeaveCount")
-                        .HasColumnType("float");
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateOnly>("DateOfEmployment")
                         .HasColumnType("date");
@@ -46,10 +44,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("EmployeeCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("EmployeeLevelId")
                         .HasColumnType("int");
@@ -70,9 +64,9 @@ namespace RequestsManagementSystem.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("EmployeeId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("EmployeeCode")
+                    b.HasIndex("Code")
                         .IsUnique();
 
                     b.HasIndex("EmployeeLevelId");
@@ -90,9 +84,6 @@ namespace RequestsManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("CasualLeavePerMonth")
-                        .HasColumnType("real");
-
                     b.Property<int>("CasualLeavePerYear")
                         .HasColumnType("int");
 
@@ -107,9 +98,6 @@ namespace RequestsManagementSystem.Data.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<float>("RegularLeaveperMonth")
-                        .HasColumnType("real");
-
                     b.Property<int>("RegularLeaveperYear")
                         .HasColumnType("int");
 
@@ -121,34 +109,30 @@ namespace RequestsManagementSystem.Data.Migrations
                         new
                         {
                             Id = 1,
-                            CasualLeavePerMonth = 0f,
                             CasualLeavePerYear = 6,
-                            LevelDescription = "الفأة أ",
+                            LevelDescription = "الفئة أ",
                             LevelName = "A",
                             OrderId = 1,
-                            RegularLeaveperMonth = 1f,
                             RegularLeaveperYear = 15
                         },
                         new
                         {
                             Id = 2,
-                            CasualLeavePerMonth = 0f,
                             CasualLeavePerYear = 6,
-                            LevelDescription = "الفأة ب",
+                            LevelDescription = "الفئة ب",
                             LevelName = "B",
                             OrderId = 2,
-                            RegularLeaveperMonth = 2f,
                             RegularLeaveperYear = 24
                         });
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Transaction", b =>
                 {
-                    b.Property<int>("TransactionId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
@@ -184,16 +168,125 @@ namespace RequestsManagementSystem.Data.Migrations
                     b.Property<short>("Title")
                         .HasColumnType("smallint");
 
-                    b.Property<short>("Type")
-                        .HasColumnType("smallint");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
-                    b.HasKey("TransactionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("SubstituteEmployeeId");
 
                     b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("RequestsManagementSystem.Core.Entities.TransactionType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Sign")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Unit")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TransactionTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "إجازة عارضه",
+                            Name = "CasualLeave",
+                            Sign = -1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "إجازة اعتيادية",
+                            Name = "RegularLeave",
+                            Sign = -1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "نصف يوم",
+                            Name = "HalfDay",
+                            Sign = -1,
+                            Unit = 0.5
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "ربع يوم",
+                            Name = "QuarterDay",
+                            Sign = -1,
+                            Unit = 0.25
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Description = "رصيد اعتيادي إضافي",
+                            Name = "AdditionalRegularLeave",
+                            Sign = 1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Description = "رصيد عارضه إضافي",
+                            Name = "AdditionalCasualLeave",
+                            Sign = 1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Description = "غياب بأذن",
+                            Name = "ExcusedAbsent",
+                            Sign = -1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Description = "غياب بدون بأذن",
+                            Name = "UnexcusedAbsent",
+                            Sign = -1,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Description = "يوم كامل",
+                            Name = "FullDay",
+                            Sign = 0,
+                            Unit = 1.0
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Description = "يوم جزئي",
+                            Name = "PartialDay",
+                            Sign = 0,
+                            Unit = 0.5
+                        });
                 });
 
             modelBuilder.Entity("RequestsManagementSystem.Core.Entities.Employee", b =>

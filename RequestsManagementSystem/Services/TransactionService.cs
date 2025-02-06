@@ -42,24 +42,25 @@ namespace RequestsManagementSystem.Services
                 var employeeTransactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(transactionDto.EmployeeId);
 
                 employeeTransactions = employeeTransactions
-                    .Where(x => x.Title == TransactionTitle.Leave && x.Type == TransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
+                    .Where(x => x.Title == TransactionTitle.Leave && x.Type.Id == (int)ETransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
                 
                 if (employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-1)) &&
                     employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-2)))
                 {
-                    throw new InvalidOperationException("لقد تعديت الحد الأقصى لطلب إجازة عارضة لثلاث أيام متتالية، يمكنك طلب اجازة اعتيادية");
+                    throw new InvalidOperationException("لقد تعديت الحد الأقصى لطلب إجازة عارضه لثلاث أيام متتالية، يمكنك طلب اجازة اعتيادية");
                 }
 
                 var transaction = new Transaction
                 {
                     Title = Enum.Parse<TransactionTitle>(transactionDto.Title, true),
-                    Type = Enum.Parse<TransactionType>(transactionDto.Type, true),
                     StartDate = transactionDto.StartDate,
                     EndDate = transactionDto.EndDate,
                     SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
                     Itinerary = transactionDto.Itinerary,
                     EmployeeId = transactionDto.EmployeeId,
                 };
+                // validate transaction id
+                transaction.Type = _transactionRepository.GetTransactionTypeIdByName(transactionDto.Type) ?? throw new InvalidOperationException("لم نستطيع تحديد نوع الطلب!");
                 // Add the transaction to database via repository
                 await _transactionRepository.AddTransactionAsync(transaction);
 
@@ -80,39 +81,9 @@ namespace RequestsManagementSystem.Services
 
         public async Task<BaseResponse> EditTransactionAsync(int transactionId, UpdateTransactionDto transactionDto)
         {
-            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+            var transaction = (await _transactionRepository.GetTransactionById(transactionId))?? throw new InvalidOperationException("ليسة موجودة");
             try
             {
-                if (!Enum.TryParse(transactionDto.Title, true, out TransactionTitle title))
-                    return new BaseResponse { Status = false, Message = "عنوان الطلب غير صالح" };
-
-                if (!Enum.TryParse(transactionDto.Type, true, out TransactionType type))
-                    return new BaseResponse { Status = false, Message = "نوع الطلب غير صالح" };
-
-                if (transactionDto.StartDate > transactionDto.EndDate)
-                    return new BaseResponse { Status = false, Message = "لا يمكن أن يكون تاريخ البدء بعد تاريخ الانتهاء" };
-
-                if (title == TransactionTitle.Leave && transactionDto.StartDate.Date < DateTime.Today)
-                    return new BaseResponse { Status = false, Message = "!برجاء إدخال تاريخ  بدايه الاجازه بشكل صحيح" };
-
-
-                if (title == TransactionTitle.Leave && (type == TransactionType.CasualLeave || type == TransactionType.RegularLeave))
-                {
-                    var days = (transactionDto.EndDate - transactionDto.StartDate).Days;
-
-
-                    if (type == TransactionType.CasualLeave && days > 2)
-                    {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه العارضه لا تتجاوز يومين");
-                    }
-                    if (type == TransactionType.RegularLeave && days > 16)
-                    {
-                        throw new InvalidOperationException("!برجاء إدخال تاريخ بدايه الاجازه بشكل صحيح, الاجازه الاعتياديه لا تتجاوز 16 يوم");
-                    }
-                }
-
-                transaction.Title = title;
-                transaction.Type = type;
                 transaction.StartDate = transactionDto.StartDate;
                 transaction.EndDate = transactionDto.EndDate;
                 transaction.SubstituteEmployeeId = transactionDto.SubstituteEmployeeId;
@@ -142,9 +113,9 @@ namespace RequestsManagementSystem.Services
             var result =
                 transactions.Select(t => new GetTransactionByEmployeeDto
                 {
-                    TransactionId = t.TransactionId,
+                    TransactionId = t.Id,
                     Title = t.Title.GetEnumDescription(),
-                    Type = t.Type.GetEnumDescription(),
+                    Type = t.Type.Description,
                     Status = t.Status.GetEnumDescription(),
                     DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
                     SendDate = t.CreationDate.ConvertToArabicDate(),
@@ -154,17 +125,17 @@ namespace RequestsManagementSystem.Services
 
         }
 
-        private static string CalculateTakenDays(Transaction t)
+        protected string CalculateTakenDays(Transaction t)
         {
+            if (t.Type.Unit < 1)
+                return t.Type.Description;
+
             // check parrtial leave
-            if (t.Title.Equals(TransactionTitle.Leave) && t.Type.Equals(TransactionType.HalfDay) || t.Type.Equals(TransactionType.QuarterDay))
-                return t.Type.GetEnumDescription();
-            
             var days = (t.EndDate - t.StartDate).Days;
 
             return days switch
             {
-                0 => "يوم واحد",
+                (< 0) => t.Type.Description,
                 1 => "يوم واحد",
                 2 => "يومان",
                 (>= 3 and <= 10) => string.Join(' ', days.ToString(), "أيام"),
@@ -179,9 +150,9 @@ namespace RequestsManagementSystem.Services
             var result = await Task.WhenAll((IEnumerable<Task<StaffTransactionDto>>)
                 transactions.Select(async t => new StaffTransactionDto
                 {
-                    TransactionId = t.TransactionId,
+                    TransactionId = t.Id,
                     Title = t.Title.GetEnumDescription(),
-                    Type = t.Type.GetEnumDescription(),
+                    Type = t.Type.Description,
                     DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
                     SendDate = t.CreationDate.ConvertToArabicDate(),
                     TakenDays = CalculateTakenDays(t),
@@ -192,7 +163,7 @@ namespace RequestsManagementSystem.Services
             return [.. result];
         }
 
-        private static string GetFormattedDueDate(DateTime StartDate, DateTime EndDate)
+        protected string GetFormattedDueDate(DateTime StartDate, DateTime EndDate)
         {
             return (StartDate == EndDate) ?
                             StartDate.ConvertToArabicDate() :
@@ -228,7 +199,7 @@ namespace RequestsManagementSystem.Services
 
             return new TransactionDto
             {
-                TransactionId = transaction.TransactionId,
+                TransactionId = transaction.Id,
                 CreationDate = transaction.CreationDate,
                 EndDate = transaction.StartDate == transaction.EndDate ? "" : transaction.EndDate.ConvertToArabicDate(),
                 Itinerary = transaction.Itinerary,
@@ -239,16 +210,16 @@ namespace RequestsManagementSystem.Services
                 Status = transaction.Status.GetEnumDescription(),
                 SubstituteEmployee = new EmployeeIdAndNameDto
                 {
-                    EmployeeId = transaction.SubstituteEmployee.EmployeeId,
+                    EmployeeId = transaction.SubstituteEmployee.Id,
                     EmployeeName = transaction.SubstituteEmployee.Name
                 },
                 Employee = new EmployeeIdAndNameDto
                 {
                     EmployeeName = transaction.Employee.Name,
-                    EmployeeId = transaction.Employee.EmployeeId,
+                    EmployeeId = transaction.Employee.Id,
                 },
                 Title = transaction.Title.GetEnumDescription(),
-                Type = transaction.Type.GetEnumDescription(),       
+                Type = transaction.Type.Description,       
                 TakenDays = CalculateTakenDays(transaction),
             };
         }
@@ -261,7 +232,7 @@ namespace RequestsManagementSystem.Services
             // If rejected, responseMessage is required
             if (status == TransactionStatus.Rejected && string.IsNullOrWhiteSpace(request.ResponceMessage))
             {
-                throw new InvalidOperationException("رجاء تقديم رسالة لسبب الرفض.");
+                throw new InvalidOperationException("برجاء تقديم رسالة لسبب الرفض.");
             }
 
             // Fetch transaction from database

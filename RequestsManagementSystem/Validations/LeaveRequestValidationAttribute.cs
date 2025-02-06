@@ -1,9 +1,7 @@
 ﻿using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 public class LeaveRequestValidationAttribute : ValidationAttribute
 {
@@ -15,8 +13,8 @@ public class LeaveRequestValidationAttribute : ValidationAttribute
                 return new ValidationResult("لا يمكن تحديد عنوان المعاملة.");
 
             // Check if Type is a valid enum
-            if (!Enum.TryParse(dto.Type, true, out TransactionType type))
-                return new ValidationResult("لا يمكن تحديد نوع المعاملة.");
+            if (!Enum.TryParse(dto.Type, true, out ETransactionType type))
+                type = ETransactionType.Other;
 
             if (dto.StartDate > dto.EndDate)
                 return new ValidationResult("لا يمكن تسجيل بطلب تاريخ البداية قبل تاريخ النهاية.");
@@ -30,17 +28,17 @@ public class LeaveRequestValidationAttribute : ValidationAttribute
 
                 var days = (dto.EndDate - dto.StartDate).Days;
 
-                if (type == TransactionType.RegularLeave && dto.StartDate.Date < DateTime.Today.Date.AddDays(2))
+                if (type == ETransactionType.RegularLeave && dto.StartDate.Date < DateTime.Today.Date.AddDays(2))
                 {
                     return new ValidationResult("يجب تقديم طلب الإجازة قبل يومين على الأقل من تاريخ الإجازة.");
                 }
 
-                if (type == TransactionType.CasualLeave && days > 2)
+                if (type == ETransactionType.CasualLeave && days > 2)
                 {
-                    return new ValidationResult("الإجازة العارضة لا تتجاوز يومين.");
+                    return new ValidationResult("الإجازة العارضه لا تتجاوز يومين.");
                 }
 
-                if (type == TransactionType.RegularLeave && days > 16)
+                if (type == ETransactionType.RegularLeave && days > 16)
                 {
                     return new ValidationResult("الإجازة الاعتيادية لا تتجاوز 16 يومًا.");
                 }

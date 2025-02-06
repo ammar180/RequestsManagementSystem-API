@@ -12,5 +12,6 @@ namespace RequestsManagementSystem.Core.Interfaces
         Task<IEnumerable<Transaction>> GetTransactionByEmployeeIdAsync(int EmployeeId);
         Task<Transaction?> GetTransactionByIdAsync(int id, string[]? includes = null);
         Task SaveChanges();
-	} 
+        TransactionType? GetTransactionTypeIdByName(string typeName);
+    } 
 }

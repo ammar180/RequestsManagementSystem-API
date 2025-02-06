@@ -22,10 +22,12 @@ namespace RequestsManagementSystem.Services
             var employee = await _employeeRepository.GetEmployeeById(id,
                     [nameof(Employee.Manager), nameof(Employee.Transactions), nameof(Employee.EmployeeLevel)]
                     ) ?? throw new NullReferenceException("المستخدم غير موجود");
+            //var balanceResult = GetEmployeeBalance(employee, p_startDate: new DateOnly(2025, 1, 1), p_endDate: new DateOnly(2025, 6, 6));
             var balanceResult = GetEmployeeBalance(employee);
             var resut = new EmployeeDto
             {
-                EmployeeId = employee.EmployeeId,
+                EmployeeId = employee.Id,
+                EmployeeCode = employee.Code,
                 EmployeeName = employee.Name,
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
@@ -46,7 +48,7 @@ namespace RequestsManagementSystem.Services
             }
             return employees.Select(x => new EmployeeIdAndNameDto
             {
-                EmployeeId = x.EmployeeId,
+                EmployeeId = x.Id,
                 EmployeeName = x.Name
             });
         }
@@ -54,8 +56,7 @@ namespace RequestsManagementSystem.Services
         public async Task<LoginResultDto> LoginAsync(LoginEmployeeDto loginEmployeeDto)
         {
             // Validate employee credentials
-
-            var employee = await _employeeRepository.GetEmployeeById(loginEmployeeDto.EmployeeId);
+            var employee = await _employeeRepository.GetEmployeeByCode(loginEmployeeDto.EmployeeCode);
 
             if (employee == null || employee.Password != loginEmployeeDto.Password)
             {
@@ -63,18 +64,17 @@ namespace RequestsManagementSystem.Services
             }
             var payload = new EmployeePayLoad
             {
-                EmployeeId = employee.EmployeeId,
+                EmployeeId = employee.Id,
                 EmployeeName = employee.Name,
                 EmployeeRole = employee.EmployeeRole.ToString(),
             };
             var token = _JWT.GenerateJwtToken(payload);
             var refreshToken = _JWT.GenerateJwtToken(payload, true);
-            employee.Manager = await _employeeRepository.GetEmployeeById(employee.ManagerId ?? 0);
             return new LoginResultDto
             {
                 token= token,
                 refreshToken = refreshToken,
-                EmployeeDto = await GetEmployeeDataAsync(loginEmployeeDto.EmployeeId),
+                EmployeeDto = await GetEmployeeDataAsync(employee.Id),
                 Message="تم تسجيل الدخول بنجاح",
                 Status=true
             };
@@ -151,7 +151,7 @@ namespace RequestsManagementSystem.Services
                     EmployeeDto = new EmployeeDto
                     {
                         EmployeeName = employee.Name,
-                        EmployeeId = employee.EmployeeId,
+                        EmployeeId = employee.Id,
                         DepartmentName = employee.DepartmentName
                     }
                 };
@@ -171,62 +171,78 @@ namespace RequestsManagementSystem.Services
             p_startDate ??= new DateOnly(DateTime.Now.Year, 1, 1);
             p_endDate ??= DateOnly.FromDateTime(DateTime.Now.Date);
 
-            double totalCasualLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, (DateOnly)p_startDate, (DateOnly)p_endDate, employee.AdditonalCasualLeaveCount);
-            double totalRegularLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, (DateOnly)p_startDate, (DateOnly)p_endDate, employee.AdditonalRegularLeaveCount);
-            var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), (DateOnly)p_startDate, p_endDate);
+            var casualBalance = 0.0;
+            var regularBalance = 0.0;
 
-            var casualBalance = totalCasualLeaves - consumedLeaves.FirstOrDefault(c => c.type == TransactionType.CasualLeave).totalConsumed;
-            var regularBalance = totalRegularLeaves - consumedLeaves.Where(c => c.type == TransactionType.RegularLeave || c.type == TransactionType.HalfDay || c.type == TransactionType.QuarterDay).Sum(x => x.totalConsumed);
+            // get current year leaves
+            casualBalance += CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value);
+            regularBalance += CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value);
 
+           
+           var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), p_startDate.Value, p_endDate.Value);
+            
+            foreach (var (type, totalConsumedDays) in consumedLeaves)
+            {
+                if (!Enum.TryParse(type.Name, false, out ETransactionType typeResuls))
+                    typeResuls = ETransactionType.Other;
+
+                switch (typeResuls)
+                {
+                    case ETransactionType.CasualLeave:
+                        casualBalance += totalConsumedDays; // i.e. current year consumed leave -3
+                        break;
+                    case ETransactionType.AdditionalCasualLeave:
+                        casualBalance += totalConsumedDays; // i.e. previous year balance +3
+                        break;
+                    case ETransactionType.RegularLeave:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -3
+                        break;
+                    case ETransactionType.HalfDay:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.5
+                        break;
+                    case ETransactionType.QuarterDay:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.25
+                        break;
+                    case ETransactionType.AdditionalRegularLeave: 
+                        regularBalance += totalConsumedDays; // i.e. previous year balance +3
+                        break;
+                    default:
+                        break;
+                }
+            }            
+            
             return (casualBalance, regularBalance);
         }
-
-        private static IEnumerable<(TransactionType type, double totalConsumed)> TotalConsumedLeaves(IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly? p_endDate = null)
+        protected IEnumerable<(TransactionType type, double totalConsumedDays)> TotalConsumedLeaves(IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly p_endDate)
         {
+            // getting sum of consumed leave in given date range
             var result = transactions
                 .Where(t => t.Status == TransactionStatus.Approved
-                            && t.Title == TransactionTitle.Leave
+                            // && t.Title == TransactionTitle.Leave
                             && DateOnly.FromDateTime(t.StartDate) >= p_startdate
-                            && (!p_endDate.HasValue || DateOnly.FromDateTime(t.EndDate) <= p_endDate.Value))
-                .Select(t => new { type = t.Type, unit = CalculateLeaveDays(t) })
+                            && DateOnly.FromDateTime(t.EndDate) <= p_endDate)
+                .Select(t => new { type = t.Type, days = t.Type.Unit * Math.Max(1, (t.EndDate - t.StartDate).Days) * t.Type.Sign })
                 .GroupBy(t => t.type)
-                .Select(g => new { type = g.Key, total = g.Sum(t => t.unit) })
+                .Select(g => new { type = g.Key, total = g.Sum(t => t.days) })
                 .ToList();
-
+                
             return result.Select(item => (item.type, item.total));
         }
-        public static double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate, double balance = 0)
+        public double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate)
         {
             int monthsCount = CalculateMonthCount(employementDate, p_startdate, p_endDate);
-            return (leavesPerMonth * monthsCount) + balance;
+            return leavesPerMonth * monthsCount;
         }
-        private static int CalculateMonthCount(DateOnly employmentDate, DateOnly startDate, DateOnly endDate)
+        protected int CalculateMonthCount(DateOnly employmentDate, DateOnly startDate, DateOnly endDate)
         {
+            if (endDate < startDate)
+                return 0;
             // Ensure startDate is not before employmentDate
             if (startDate < employmentDate)
                 startDate = employmentDate;
-
             // Calculate the total months between startDate and endDate
             int monthsCount = (endDate.Year - startDate.Year) * 12 + (endDate.Month - startDate.Month);
-
-            // Adjust for partial months
-            if (endDate.Day < startDate.Day)
-                monthsCount--;
-
             return Math.Max(monthsCount, 0); // Ensure non-negative result
-        }
-        private static double CalculateLeaveDays(Transaction t)
-        {
-            double days = 0;
-
-            if (t.Type == TransactionType.HalfDay)
-                days += 0.5;
-            else if (t.Type == TransactionType.QuarterDay)
-                days += 0.25;
-            else
-                days = (t.EndDate - t.StartDate).Days;
-
-            return days;
         }
     }
 }

@@ -2,6 +2,8 @@
 
 namespace RequestsManagementSystem.Dtos.TransactionsDtos
 {
+    [MissionRequestValidation]
+    [LeaveRequestValidation]
     public class UpdateTransactionDto
     {
         public string? Title { get; set; }

@@ -5,7 +5,7 @@ using RequestsManagementSystem.Core.Enums;
 
 namespace RequestsManagementSystem.Data.Repositories
 {
-	public class TransactionRepository : ITransactionRepository
+    public class TransactionRepository : ITransactionRepository
     {
 
         private readonly ApplicationDbContext _context;
@@ -53,7 +53,7 @@ namespace RequestsManagementSystem.Data.Repositories
                 .ThenInclude(e=> e.Employee)
                 .Where(e => e.ManagerId == managerId)
                 .SelectMany(e => e.Transactions)
-                .Where(t => t.Status == TransactionStatus.Edited)
+                .Where(t => t.Status != TransactionStatus.Edited)
                 .ToListAsync();
         }
 
@@ -79,7 +79,7 @@ namespace RequestsManagementSystem.Data.Repositories
                 }
             }
 
-            return await query.FirstOrDefaultAsync(x => x.TransactionId == id);
+            return await query.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task SaveChanges()
@@ -98,6 +98,11 @@ namespace RequestsManagementSystem.Data.Repositories
             {
                 throw;
             }
+        }
+
+        public TransactionType? GetTransactionTypeIdByName(string typeName)
+        {
+            return _context.TransactionTypes.FirstOrDefault(t => t.Name == typeName);
         }
     }
 }

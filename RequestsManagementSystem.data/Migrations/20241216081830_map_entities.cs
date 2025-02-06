@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RequestsManagementSystem.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class mapentities : Migration
+    public partial class map_entities : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,8 +21,6 @@ namespace RequestsManagementSystem.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LevelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LevelDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RegularLeaveperMonth = table.Column<float>(type: "real", nullable: false),
-                    CasualLeavePerMonth = table.Column<float>(type: "real", nullable: false),
                     RegularLeaveperYear = table.Column<int>(type: "int", nullable: false),
                     CasualLeavePerYear = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<int>(type: "int", nullable: false)
@@ -33,16 +31,30 @@ namespace RequestsManagementSystem.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TransactionTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Unit = table.Column<double>(type: "float", nullable: false),
+                    Sign = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Employees",
                 columns: table => new
                 {
-                    EmployeeId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EmployeeCode = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    AdditonalRegularLeaveCount = table.Column<double>(type: "float", nullable: false),
-                    AdditonalCasualLeaveCount = table.Column<int>(type: "int", nullable: false),
                     DateOfEmployment = table.Column<DateOnly>(type: "date", nullable: false),
                     EmployeeRole = table.Column<short>(type: "smallint", nullable: false),
                     EmployeeLevelId = table.Column<int>(type: "int", nullable: false),
@@ -51,7 +63,7 @@ namespace RequestsManagementSystem.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Employees", x => x.EmployeeId);
+                    table.PrimaryKey("PK_Employees", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Employees_EmployeeLevel_EmployeeLevelId",
                         column: x => x.EmployeeLevelId,
@@ -62,7 +74,7 @@ namespace RequestsManagementSystem.Data.Migrations
                         name: "FK_Employees_Employees_ManagerId",
                         column: x => x.ManagerId,
                         principalTable: "Employees",
-                        principalColumn: "EmployeeId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -70,10 +82,10 @@ namespace RequestsManagementSystem.Data.Migrations
                 name: "Transactions",
                 columns: table => new
                 {
-                    TransactionId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<short>(type: "smallint", nullable: false),
-                    Type = table.Column<short>(type: "smallint", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SubstituteEmployeeId = table.Column<int>(type: "int", nullable: false),
@@ -87,34 +99,51 @@ namespace RequestsManagementSystem.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transactions", x => x.TransactionId);
+                    table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Transactions_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "EmployeeId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Transactions_Employees_SubstituteEmployeeId",
                         column: x => x.SubstituteEmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "EmployeeId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
                 table: "EmployeeLevel",
-                columns: new[] { "Id", "CasualLeavePerMonth", "CasualLeavePerYear", "LevelDescription", "LevelName", "OrderId", "RegularLeaveperMonth", "RegularLeaveperYear" },
+                columns: new[] { "Id", "CasualLeavePerYear", "LevelDescription", "LevelName", "OrderId", "RegularLeaveperYear" },
                 values: new object[,]
                 {
-                    { 1, 0.5f, 6, "الفئة أ", "A", 1, 1.25f, 15 },
-                    { 2, 0.5f, 6, "الفئة ب", "B", 2, 2f, 24 }
+                    { 1, 6, "الفئة أ", "A", 1, 15 },
+                    { 2, 6, "الفئة ب", "B", 2, 24 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "TransactionTypes",
+                columns: new[] { "Id", "Description", "Name", "Sign", "Unit" },
+                values: new object[,]
+                {
+                    { 1, "إجازة عارضه", "CasualLeave", -1, 1.0 },
+                    { 2, "إجازة اعتيادية", "RegularLeave", -1, 1.0 },
+                    { 3, "نصف يوم", "HalfDay", -1, 0.5 },
+                    { 4, "ربع يوم", "QuarterDay", -1, 0.25 },
+                    { 5, "رصيد اعتيادي إضافي", "AdditionalRegularLeave", 1, 1.0 },
+                    { 6, "رصيد عارضه إضافي", "AdditionalCasualLeave", 1, 1.0 },
+                    { 7, "غياب بأذن", "ExcusedAbsent", -1, 1.0 },
+                    { 8, "غياب بدون بأذن", "UnexcusedAbsent", -1, 1.0 },
+                    { 9, "يوم كامل", "FullDay", 0, 1.0 },
+                    { 10, "يوم جزئي", "PartialDay", 0, 0.5 }
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employees_EmployeeCode",
+                name: "IX_Employees_Code",
                 table: "Employees",
-                column: "EmployeeCode",
+                column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -143,6 +172,9 @@ namespace RequestsManagementSystem.Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "TransactionTypes");
 
             migrationBuilder.DropTable(
                 name: "Employees");

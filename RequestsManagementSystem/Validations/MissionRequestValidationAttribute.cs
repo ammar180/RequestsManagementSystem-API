@@ -22,6 +22,10 @@ public class MissionRequestValidationAttribute : ValidationAttribute
                 {
                     return new ValidationResult("لا يمكن تقديم طلب المهمة بعد يوم 20 لمهام بدأت قبل يوم 20.");
                 }
+                if (dto.Itinerary == null || dto.Itinerary.Count == 0)
+                {
+                    return new ValidationResult("برجاء تقديم خط السير، وجهه واحدة على الاقل.");
+                }
             }
         }
         return ValidationResult.Success!;

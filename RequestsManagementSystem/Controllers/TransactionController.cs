@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Dtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 using RequestsManagementSystem.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -38,6 +39,14 @@ namespace RequestsManagementSystem.Controllers
                     Message = ex.Message
                 });
             }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new BaseResponse
+                {
+                    Status = false,
+                    Message = ex.Message
+                });
+            }
             catch (Exception)
             {
                 return Ok(new BaseResponse
@@ -57,7 +66,7 @@ namespace RequestsManagementSystem.Controllers
 
                 return Ok(transaction);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest();
             }
@@ -71,18 +80,18 @@ namespace RequestsManagementSystem.Controllers
 
                 return Ok(transaction);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest();
             }
         }
 
-        [HttpGet("GetAllTransactionsByEmployeeId/{EmployeeId}")]
-        public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int EmployeeId)
+        [HttpGet("GetAllTransactionsByEmployeeId/{employeeId}")]
+        public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int employeeId)
         {
             try
             {
-                var transactions = await _transactionService.GetAllTransactionsByEmployeeId(EmployeeId);
+                var transactions = await _transactionService.GetAllTransactionsByEmployeeId(employeeId);
                 return Ok(transactions);
             }
             catch (Exception ex)
@@ -115,7 +124,7 @@ namespace RequestsManagementSystem.Controllers
         }
 
 
-        [HttpDelete("RemoveTransactionAsync")]
+        [HttpDelete("CanelTransaction{transactionId}")]
         public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
         {
             try
