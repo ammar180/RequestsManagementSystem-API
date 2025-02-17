@@ -46,24 +46,34 @@ public class EmployeeRepository : IEmployeeRepository
     }
 
     // Get an employee by ID
-    public async Task<Employee?> GetEmployeeById(int id)
+    public async Task<Employee?> GetEmployeeByCode(string code, string[]? includes = null)
     {
-        return await _context.Employees
-            .FirstOrDefaultAsync(e => e.EmployeeId == id);
-    }
-    public async Task<Employee?> GetEmployeeByIdWithTransaction(int id)
-    {
-        return await _context.Employees
-            .Include(e => e.Transactions)
-            .FirstOrDefaultAsync(e => e.EmployeeId == id);
-    }
+        IQueryable<Employee> query = _context.Employees;
 
-    // Get all employees
-    public async Task<IEnumerable<Employee>> GetEmployes()
+        if (includes != null)
+        {
+            foreach (var navigation in includes)
+            {
+                query = query.Include(navigation);
+            }
+        }
+
+        return await query.FirstOrDefaultAsync(e => e.Code == code);
+    }
+    // Get an employee by Id
+    public async Task<Employee?> GetEmployeeById(int id, string[]? includes = null)
     {
-        return await _context.Employees
-            .Include(e => e.Manager) // Include manager information
-            .ToListAsync();
+        IQueryable<Employee> query = _context.Employees;
+
+        if (includes != null)
+        {
+            foreach (var navigation in includes)
+            {
+                query = query.Include(navigation);
+            }
+        }
+
+        return await query.FirstOrDefaultAsync(e => e.Id == id);
     }
     //Get Employee by Department name
     public async Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department)
@@ -77,14 +87,12 @@ public class EmployeeRepository : IEmployeeRepository
     {
         try
         {
-            var existingEmployee = await _context.Employees.FindAsync(employee.EmployeeId);
+            var existingEmployee = await _context.Employees.FindAsync(employee.Id);
             if (existingEmployee == null) return false;
 
             // Update fields
             existingEmployee.Name = employee.Name;
             existingEmployee.Password = employee.Password;
-            existingEmployee.RegularLeaveCount = employee.RegularLeaveCount;
-            existingEmployee.CasualLeaveCount = employee.CasualLeaveCount;
             existingEmployee.DateOfEmployment = employee.DateOfEmployment;
             existingEmployee.EmployeeRole = employee.EmployeeRole;
             existingEmployee.DepartmentName = employee.DepartmentName;

@@ -7,9 +7,9 @@ namespace RequestsManagementSystem.Core.Extentions
         {
             CultureInfo arabicCulture = new CultureInfo("ar-EG");
 
-            string arabicDate = DateTime? 
-                date.ToString("d MMMM hh:mm tt", arabicCulture) // 1 يناير 12:00 ص
-                : date.ToString("d MMMM", arabicCulture); // 1 يناير
+            string arabicDate = DateTime?
+                date.ToString("d MMMM، dddd - hh:mm tt", arabicCulture) // 1 يناير - 12:00 ص، الاربعاء
+                : date.ToString("d MMMM، dddd", arabicCulture); // 1 يناير، الاربعاء
 
             return arabicDate;
         }

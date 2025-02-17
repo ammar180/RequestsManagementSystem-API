@@ -7,9 +7,9 @@ namespace RequestsManagementSystem.Core.Entities
     public class Transaction
     {
         [Key]
-        public int TransactionId { get; set; }
+        public int Id { get; set; }
         public TransactionTitle Title { get; set; }
-        public TransactionType Type { get; set; }
+        public TransactionType Type { get; set; } = default!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int SubstituteEmployeeId { get; set; }

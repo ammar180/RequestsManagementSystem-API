@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Dtos;
 using RequestsManagementSystem.Dtos.TransactionsDtos;
 using RequestsManagementSystem.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -17,7 +18,6 @@ namespace RequestsManagementSystem.Controllers
         {
             _transactionService = transactionService;
         }
-
 
         [HttpPost("PostTransaction")]
         public async Task<ActionResult<BaseResponse>> PostTransaction(CreateTransactionDto transactionDto)
@@ -34,6 +34,14 @@ namespace RequestsManagementSystem.Controllers
             catch (InvalidOperationException ex)
             {
                 return Ok(new BaseResponse
+                {
+                    Status = false,
+                    Message = ex.Message
+                });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new BaseResponse
                 {
                     Status = false,
                     Message = ex.Message
@@ -58,7 +66,7 @@ namespace RequestsManagementSystem.Controllers
 
                 return Ok(transaction);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest();
             }
@@ -72,18 +80,18 @@ namespace RequestsManagementSystem.Controllers
 
                 return Ok(transaction);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest();
             }
         }
 
-        [HttpGet("GetAllTransactionsByEmployeeId/{EmployeeId}")]
-        public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int EmployeeId)
+        [HttpGet("GetAllTransactionsByEmployeeId/{employeeId}")]
+        public async Task<ActionResult<IEnumerable<GetTransactionByEmployeeDto>>> GetAllTransactionsByEmployeeId(int employeeId)
         {
             try
             {
-                var transactions = await _transactionService.GetAllTransactionsByEmployeeId(EmployeeId);
+                var transactions = await _transactionService.GetAllTransactionsByEmployeeId(employeeId);
                 return Ok(transactions);
             }
             catch (Exception ex)
@@ -106,5 +114,58 @@ namespace RequestsManagementSystem.Controllers
 			}
 		}
 
-	}
+        [HttpPut("EditTransaction")]
+        public async Task<IActionResult> EditTransaction(int transactionId,UpdateTransactionDto transactionDto)
+        {
+            var result = await _transactionService.EditTransactionAsync(transactionId, transactionDto);
+            if (!result.Status)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+
+        [HttpDelete("CanelTransaction{transactionId}")]
+        public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
+        {
+            try
+            {
+                var result = await _transactionService.CancelTransactionAsync(transactionId);
+
+                if (!result.Success)
+                    return BadRequest(result.Message);
+
+                return Ok(result.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"حدث خطأ: {ex.Message}");
+            }
+        }
+        [HttpPut("SetStatus/{id}")]
+        public async Task<IActionResult> SetTransactionStatus(int id, UpdateTransactionStatusDto request)
+        {
+            try
+            {
+                var result = await _transactionService.UpdateTransactionStatusAsync(id, request);
+                return Ok(new BaseResponse { Status = true, Message = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new BaseResponse { Status = false, Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new BaseResponse { Status = false, Message = "خطأ غير متوقع" });
+            }
+        }
+
+    }
 }

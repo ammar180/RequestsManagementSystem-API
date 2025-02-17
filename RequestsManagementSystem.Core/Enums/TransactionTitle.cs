@@ -4,7 +4,7 @@ namespace RequestsManagementSystem.Core.Entities
 	public enum TransactionTitle
 	{
         [Description("اجازة")]
-        Leave,
+        Leave = 1,
         [Description("مأمورية")]
         Mission	
 	}

@@ -48,7 +48,7 @@ builder.Services.AddAuthentication(options =>
 // Add swagger Authentication Option
 builder.Services.AddSwaggerGen(option =>
 {
-	option.SwaggerDoc("v1", new OpenApiInfo { Title = "RMS API", Version = "v1" });
+	option.SwaggerDoc("v1", new OpenApiInfo { Title = "RMS API", Version = "v2" });
 	option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 	{
 		In = ParameterLocation.Header,
@@ -81,11 +81,11 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
 	app.UseSwagger();
 	app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 

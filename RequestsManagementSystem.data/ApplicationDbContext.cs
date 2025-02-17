@@ -1,23 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Configuration;
 using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Data
 {
-    public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
+    public class ApplicationDbContext : DbContext
     {
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
+        private readonly List<TransactionType> _transactionTypes;
+        private readonly IConfiguration _configuration;
+
+        public ApplicationDbContext(IConfiguration configuration, DbContextOptions options) : base(options)
+        {
+            _configuration = configuration;
+            _transactionTypes = TransactionTypes.ToList();
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.Manager)
                 .WithMany(m => m.ManagerStaff)
                 .HasForeignKey(e => e.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-             modelBuilder.Entity<Employee>()
-                .HasMany(e => e.Transactions)
-                .WithOne(t => t.Employee)
-                .HasForeignKey(t => t.EmployeeId); 
+            modelBuilder.Entity<Employee>()
+               .HasMany(e => e.Transactions)
+               .WithOne(t => t.Employee)
+               .HasForeignKey(t => t.EmployeeId);
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.Code)
+                .IsUnique();
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.SubstituteEmployee)
@@ -25,15 +40,47 @@ namespace RequestsManagementSystem.Data
                 .HasForeignKey(t => t.SubstituteEmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Seed data for EmployeeLevel
+            // Load EmployeeLevels from appsettings.json
+            var employeeLevels = _configuration.GetSection("EmployeeLevels").GetChildren();
+            modelBuilder.Entity<EmployeeLevel>().HasData(
+                employeeLevels.Select(e => new EmployeeLevel
+                {
+                    Id = int.Parse(e["Id"]!),
+                    LevelName = e["LevelName"]!,
+                    LevelDescription = e["LevelDescription"]!,
+                    RegularLeaveperYear = int.Parse(e["RegularLeaveperYear"]!),
+                    CasualLeavePerYear = int.Parse(e["CasualLeavePerYear"]!),
+                    OrderId = int.Parse(e["OrderId"]!)
+                }).ToArray()
+            );
+
+            // Seed data for TransactionType
+            // Load transaction types from appsettings.json
+            var transactionTypes = _configuration.GetSection("TransactionTypes").GetChildren();
+            modelBuilder.Entity<TransactionType>().HasData(
+                transactionTypes.Select(t => new TransactionType
+                {
+                    Id = int.Parse(t["Id"]!),
+                    Name = t["Name"]!,
+                    Description = t["Description"]!,
+                    Unit = double.Parse(t["Unit"]!),
+                    Sign = int.Parse(t["Sign"]!)
+                }).ToArray()
+            );
+
             modelBuilder.Entity<Employee>()
-                .Property(e => e.EmployeeRole)
-                .HasConversion<short>();
+                    .Property(e => e.EmployeeRole)
+                    .HasConversion<short>();
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Title)
                 .HasConversion<short>();
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Type)
-                .HasConversion<short>();
+                .HasConversion(
+                    type => type.Id,
+                    typeId => _transactionTypes.First(t => t.Id == typeId)
+                );
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Status)
                 .HasConversion<short>();
@@ -43,7 +90,7 @@ namespace RequestsManagementSystem.Data
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Itinerary)
                 .HasConversion(
-                    v => string.Join(';', v?? new List<string> { "" }),
+                    v => string.Join(';', v ?? new List<string> { "" }),
                     v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
                 )
                 .Metadata.SetValueComparer(new ValueComparer<List<string>>(
@@ -54,5 +101,6 @@ namespace RequestsManagementSystem.Data
         }
         public DbSet<Employee> Employees { get; set; } = default!;
         public DbSet<Transaction> Transactions { get; set; } = default!;
+        public DbSet<TransactionType> TransactionTypes { get; set; } = default!;
     }
 }

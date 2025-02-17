@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Enums;
 
 namespace RequestsManagementSystem.Data.Repositories
 {
-	public class TransactionRepository : ITransactionRepository
+    public class TransactionRepository : ITransactionRepository
     {
 
         private readonly ApplicationDbContext _context;
@@ -27,6 +28,24 @@ namespace RequestsManagementSystem.Data.Repositories
             }
         }
 
+        public async Task<Transaction?> GetTransactionById(int transactionId)
+        {
+            return await _context.Transactions.FindAsync(transactionId);
+        }
+
+        public async Task<bool> RemoveTransactionAsync(int transactionId)
+        {
+            var transaction = await _context.Transactions.FindAsync(transactionId);
+            if (transaction == null)
+            {
+                return false;
+            }
+
+            _context.Transactions.Remove(transaction);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<IEnumerable<Transaction>> GetStaffTransaction(int managerId)
         {
             return await _context.Employees
@@ -34,6 +53,7 @@ namespace RequestsManagementSystem.Data.Repositories
                 .ThenInclude(e=> e.Employee)
                 .Where(e => e.ManagerId == managerId)
                 .SelectMany(e => e.Transactions)
+                .Where(t => t.Status != TransactionStatus.Edited)
                 .ToListAsync();
         }
 
@@ -59,13 +79,30 @@ namespace RequestsManagementSystem.Data.Repositories
                 }
             }
 
-            return await query.FirstOrDefaultAsync(x => x.TransactionId == id);
+            return await query.FirstOrDefaultAsync(x => x.Id == id);
         }
-
 
         public async Task SaveChanges()
 		{
             await _context.SaveChangesAsync();
 		}
-	}
+
+        public async Task<bool> UpdateTransactionAsync(Transaction transaction)
+        {
+            try
+            {
+                _context.Transactions.Update(transaction);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public TransactionType? GetTransactionTypeIdByName(string typeName)
+        {
+            return _context.TransactionTypes.FirstOrDefault(t => t.Name == typeName);
+        }
+    }
 }

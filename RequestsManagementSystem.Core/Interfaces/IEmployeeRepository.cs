@@ -4,10 +4,9 @@ namespace RequestsManagementSystem.Core.Interfaces
 {
     public interface IEmployeeRepository
     {
-        Task<Employee?> GetEmployeeById(int id);
-        Task<Employee?> GetEmployeeByIdWithTransaction(int id);
-        Task<IEnumerable<Employee>> GetEmployes();
-        Task<bool> AddAsync(Employee employee);
+        Task<Employee?> GetEmployeeByCode(string code, string[]? includes = null);                        
+        Task<Employee?> GetEmployeeById(int id, string[]? includes = null);
+        Task<bool> AddAsync(Employee employee); 
         Task<bool> UpdateAsync(Employee employee);
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department);

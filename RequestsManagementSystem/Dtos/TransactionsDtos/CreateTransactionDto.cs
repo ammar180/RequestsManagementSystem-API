@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Dtos.TransactionsDtos
 {
+    [MissionRequestValidation]
+    [LeaveRequestValidation]
     public class CreateTransactionDto
     {
         [Required(ErrorMessage ="The title field is requird")]
