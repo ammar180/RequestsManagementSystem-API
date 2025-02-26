@@ -20,28 +20,34 @@ namespace RequestsManagementSystem.Controllers
         }
 
         [HttpPost("PostTransaction")]
-        public async Task<ActionResult<BaseResponse>> PostTransaction(CreateTransactionDto transactionDto)
+        public async Task<ActionResult<BaseResponse>> PostTransaction([FromBody] CreateTransactionDto transactionDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault(); // Get the first validation error message
+
+                return BadRequest(new BaseResponse
+                {
+                    Status = false,
+                    Message = errorMessage ?? "حدث خطأ في التحقق من صحة البيانات"
+                });
+            }
+
             try
             {
                 await _transactionService.AddTransactionAsync(transactionDto);
                 return Ok(new BaseResponse
                 {
                     Status = true,
-                    Message = "تم ارسال الطلب بنجاح، برجاء اتظار رد المدير"
+                    Message = "تم ارسال الطلب بنجاح، برجاء انتظار رد المدير"
                 });
             }
             catch (InvalidOperationException ex)
             {
                 return Ok(new BaseResponse
-                {
-                    Status = false,
-                    Message = ex.Message
-                });
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new BaseResponse
                 {
                     Status = false,
                     Message = ex.Message
