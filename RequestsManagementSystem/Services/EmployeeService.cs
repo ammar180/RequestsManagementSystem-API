@@ -171,12 +171,13 @@ namespace RequestsManagementSystem.Services
             p_startDate ??= new DateOnly(DateTime.Now.Year, 1, 1);
             p_endDate ??= DateOnly.FromDateTime(DateTime.Now.Date);
 
+
             var casualBalance = 0.0;
             var regularBalance = 0.0;
 
             // get current year leaves
-            casualBalance += CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value);
-            regularBalance += CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value);
+            casualBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value)??0);
+            regularBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value) ?? 0);
 
            
            var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), p_startDate.Value, p_endDate.Value);
@@ -228,7 +229,7 @@ namespace RequestsManagementSystem.Services
                 
             return result.Select(item => (item.type, item.total));
         }
-        public double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate)
+        public double? CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate)
         {
             int monthsCount = CalculateMonthCount(employementDate, p_startdate, p_endDate);
             return leavesPerMonth * monthsCount;
@@ -243,6 +244,22 @@ namespace RequestsManagementSystem.Services
             // Calculate the total months between startDate and endDate
             int monthsCount = (endDate.Year - startDate.Year) * 12 + (endDate.Month - startDate.Month);
             return Math.Max(monthsCount, 0); // Ensure non-negative result
+        }
+
+
+        public async Task<IEnumerable<EmployeeExcelDto>> GetEmployeesToExcelFormat(DateOnly? startDate, DateOnly? EndDate)
+        {
+            return (await _employeeRepository.GetEmployesIncludeTransactionAsync()).Select(x =>
+            {
+                var balance = GetEmployeeBalance(x,startDate,EndDate);
+                return new EmployeeExcelDto
+                {
+                    Name = x.Name,
+                    Code = x.Code,
+                    CausalBalance = balance.CasualBalance,
+                    RegularBalance = balance.RegularBalance,
+                };
+            });
         }
     }
 }

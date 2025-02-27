@@ -82,6 +82,11 @@ public class EmployeeRepository : IEmployeeRepository
             .Where(x=>x.DepartmentName == Department).ToListAsync();
     }
 
+    public async Task<IEnumerable<Employee>> GetEmployesIncludeTransactionAsync()
+    {
+        return await _context.Employees.Include(x=>x.Transactions).Include(x=>x.EmployeeLevel).ToListAsync();
+    }
+
     // Update an employee
     public async Task<bool> UpdateAsync(Employee employee)
     {

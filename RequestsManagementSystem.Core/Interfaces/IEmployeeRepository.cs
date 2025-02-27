@@ -10,5 +10,6 @@ namespace RequestsManagementSystem.Core.Interfaces
         Task<bool> UpdateAsync(Employee employee);
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<Employee>> GetEmployesByDepartment(string Department);
+        Task<IEnumerable<Employee>> GetEmployesIncludeTransactionAsync();
     }
 }

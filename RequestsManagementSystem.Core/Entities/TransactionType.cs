@@ -8,5 +8,4 @@
         public double Unit { get; set; } = 1;
         public int Sign { get; set; } = -1; // or 1 or 0
     }
-
 }
