@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RequestsManagementSystem.Dtos.EmployeeDtos;
 using RequestsManagementSystem.Services;
 using System.Threading.Tasks;
 
@@ -39,6 +40,23 @@ namespace RequestsManagementSystem.Controllers
             {
                 // Handle any errors and return appropriate response
                 return StatusCode(500, $"An error occurred while generating the Excel file: {ex.Message}");
+            }
+        }
+        [HttpPost("import-excel")]
+        public async Task<IActionResult> ImportEmployeesFromExcel([FromForm] IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest("No file uploaded.");
+
+                List<EmployeeExcelDto> employees = await _adminService.ImportEmployeesFromExcel(file);
+
+                return Ok(employees);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }
