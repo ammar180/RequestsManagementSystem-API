@@ -9,6 +9,7 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Dtos.EmployeeDtos;
 
 namespace RequestsManagementSystem.Services
 {
@@ -61,9 +62,9 @@ namespace RequestsManagementSystem.Services
 
 
 
-        public async Task<List<Employee>> ImportEmployeesFromExcel(IFormFile file)
+        public async Task<List<EmployeeExcelDto>> ImportEmployeesFromExcel(IFormFile file)
         {
-            var employeesList = new List<Employee>();
+            var employeesList = new List<EmployeeExcelDto>();
 
             try
             {
@@ -72,25 +73,25 @@ namespace RequestsManagementSystem.Services
                     throw new Exception("No file uploaded");
                 }
 
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); // Required for ExcelReader
 
                 using (var stream = file.OpenReadStream())
                 {
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
-                        while (reader.Read()) 
+                        while (reader.Read()) // Read each row
                         {
-                            if (reader.Depth == 0) continue;
+                            if (reader.Depth == 0) continue; // Skip header row if applicable
 
-                            var employee = new Employee
+                            var employeeDto = new EmployeeExcelDto
                             {
                                 Code = reader.GetValue(0)?.ToString() ?? string.Empty,
                                 Name = reader.GetValue(1)?.ToString() ?? string.Empty,
-                                Password = reader.GetValue(2)?.ToString() ?? string.Empty,
-                                DepartmentName = reader.GetValue(3)?.ToString() ?? string.Empty
+                                RegularBalance = double.TryParse(reader.GetValue(2)?.ToString(), out double regular) ? regular : 0,
+                                CausalBalance = double.TryParse(reader.GetValue(3)?.ToString(), out double causal) ? causal : 0
                             };
 
-                            employeesList.Add(employee);
+                            employeesList.Add(employeeDto);
                         }
                     }
                 }
