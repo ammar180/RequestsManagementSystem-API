@@ -1,14 +1,26 @@
-﻿using OfficeOpenXml;
+﻿using ExcelDataReader;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using ExcelDataReader;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
 
 namespace RequestsManagementSystem.Services
 {
     public class AdminService : IAdminService
     {
         private readonly IEmployeeService _employeeService;
+        private readonly ITransactionService _transactionService;
 
-        public AdminService(IEmployeeService employeeService)
+        public AdminService(IEmployeeService employeeService, ITransactionService transactionService)
         {
             _employeeService = employeeService;
+            _transactionService = transactionService;
         }
 
 
@@ -46,5 +58,51 @@ namespace RequestsManagementSystem.Services
                 return package.GetAsByteArray(); // Return as byte array
             }
         }
+
+
+
+        public async Task<List<Employee>> ImportEmployeesFromExcel(IFormFile file)
+        {
+            var employeesList = new List<Employee>();
+
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    throw new Exception("No file uploaded");
+                }
+
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                using (var stream = file.OpenReadStream())
+                {
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        while (reader.Read()) 
+                        {
+                            if (reader.Depth == 0) continue;
+
+                            var employee = new Employee
+                            {
+                                Code = reader.GetValue(0)?.ToString() ?? string.Empty,
+                                Name = reader.GetValue(1)?.ToString() ?? string.Empty,
+                                Password = reader.GetValue(2)?.ToString() ?? string.Empty,
+                                DepartmentName = reader.GetValue(3)?.ToString() ?? string.Empty
+                            };
+
+                            employeesList.Add(employee);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            return employeesList;
+        }
+
     }
 }
+
