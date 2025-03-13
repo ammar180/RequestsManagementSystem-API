@@ -173,5 +173,19 @@ namespace RequestsManagementSystem.Controllers
             }
         }
 
+        [HttpGet("EmployeeReport/{EmployeeId}")]
+        public async Task<IActionResult> EmployeeReport(int EmployeeId, [FromQuery]string p_type, [FromQuery]DateTime? StartDate, [FromQuery]DateTime? EndDate)
+        {
+            try
+            {
+                var result = await _transactionService.EmployeeReport(EmployeeId, p_type, StartDate, EndDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

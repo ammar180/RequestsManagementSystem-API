@@ -135,7 +135,7 @@ namespace RequestsManagementSystem.Logic.Services
 
             return days switch
             {
-                (< 0) => t.Type.Description,
+                (<= 0) => t.Type.Description,
                 1 => "يوم واحد",
                 2 => "يومان",
                 (>= 3 and <= 10) => string.Join(' ', days.ToString(), "أيام"),
@@ -252,6 +252,126 @@ namespace RequestsManagementSystem.Logic.Services
 
             return $"تم تسجيل الرد بنجاح حالة الطلب: {status.GetEnumDescription()}";
         }
+
+        public async Task<ReportTransactionDTO> EmployeeReport(int EmployeeId, string p_type, DateTime? StartDate, DateTime? EndDate)
+        {
+            if (!Enum.TryParse(p_type, true, out ETransactionType type)) // type: regular / casual
+                throw new KeyNotFoundException("Couldn't Determine report type for transaction!");
+            var employee = await _employeeRepo.GetEmployeeById(EmployeeId, [nameof(Employee.Transactions), nameof(Employee.EmployeeLevel)]) ?? throw new KeyNotFoundException("Employee Id doesn't Exist");
+            
+            StartDate ??= new DateTime(DateTime.Now.Year, 1, 1);
+            EndDate ??= DateTime.Now;
+            
+            double TotalLeaves, ConsumedLeaves, AdditionalLeaves, RemainingLeaves;
+            TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, DateOnly.FromDateTime( StartDate.Value) , DateOnly.FromDateTime(EndDate.Value));
+            
+            var x = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
+            
+            AdditionalLeaves = x.FirstOrDefault(n => n.type.Id == (int)(type switch { ETransactionType.RegularLeave => ETransactionType.AdditionalRegularLeave, ETransactionType.CasualLeave => ETransactionType.AdditionalCasualLeave })).totalConsumedDays;
+            ConsumedLeaves = x.FirstOrDefault(n => n.type.Id == (int)type).totalConsumedDays;
+            RemainingLeaves = (TotalLeaves + AdditionalLeaves + ConsumedLeaves);
+
+            var FilteredTransactions = employee.Transactions.
+                                                Where(t => t.Type.Id == (int)type).
+                                                Where(t => t.StartDate.Date >= StartDate && t.EndDate <= EndDate).
+                                                Where(t => t.Status == TransactionStatus.Approved).ToList();
+
+            return new ReportTransactionDTO
+            {
+                Title = p_type,
+                TotalLeaves = TotalLeaves.ToString("0.00"),
+                RemainingLeaves = RemainingLeaves.ToString("0.00"),
+                UsedLeaves = ConsumedLeaves.ToString("0.00"),
+                AdditionalLeaves = AdditionalLeaves.ToString("0.00"),
+                Transactions = FilteredTransactions.Select(t => new TransactionForReportDTO
+                {
+                    StartDate = t.StartDate.ConvertToArabicDate(),
+                    EndDate = t.EndDate.ConvertToArabicDate(),
+                    Duration = CalculateTakenDays(t),
+                }).ToList()
+            };
+        }
+        public (double CasualBalance, double RegularBalance) GetEmployeeBalance(Employee employee, DateOnly? p_startDate = null, DateOnly? p_endDate = null)
+        {
+            // Set default start and end dates if not provided
+            p_startDate ??= new DateOnly(DateTime.Now.Year, 1, 1);
+            p_endDate ??= DateOnly.FromDateTime(DateTime.Now.Date);
+
+
+            var casualBalance = 0.0;
+            var regularBalance = 0.0;
+
+            // get current year leaves
+            casualBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
+            regularBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
+
+
+            var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), p_startDate.Value, p_endDate.Value);
+
+            foreach (var (type, totalConsumedDays) in consumedLeaves)
+            {
+                if (!Enum.TryParse(type.Name, false, out ETransactionType typeResuls))
+                    typeResuls = ETransactionType.Other;
+
+                switch (typeResuls)
+                {
+                    case ETransactionType.CasualLeave:
+                        casualBalance += totalConsumedDays; // i.e. current year consumed leave -3
+                        break;
+                    case ETransactionType.AdditionalCasualLeave:
+                        casualBalance += totalConsumedDays; // i.e. previous year balance +3
+                        break;
+                    case ETransactionType.RegularLeave:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -3
+                        break;
+                    case ETransactionType.HalfDay:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.5
+                        break;
+                    case ETransactionType.QuarterDay:
+                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.25
+                        break;
+                    case ETransactionType.AdditionalRegularLeave:
+                        regularBalance += totalConsumedDays; // i.e. previous year balance +3
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return (casualBalance, regularBalance);
+        }
+        protected IEnumerable<(TransactionType type, double totalConsumedDays)> TotalConsumedLeaves(IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly p_endDate)
+        {
+            // getting sum of consumed leave in given date range
+            var result = transactions
+                .Where(t => t.Status == TransactionStatus.Approved
+                            // && t.Title == TransactionTitle.Leave
+                            && DateOnly.FromDateTime(t.StartDate) >= p_startdate
+                            && DateOnly.FromDateTime(t.EndDate) <= p_endDate)
+                .Select(t => new { type = t.Type, days = t.Type.Unit * Math.Max(1, (t.EndDate - t.StartDate).Days) * t.Type.Sign })
+                .GroupBy(t => t.type)
+                .Select(g => new { type = g.Key, total = g.Sum(t => t.days) })
+                .ToList();
+
+            return result.Select(item => (item.type, item.total));
+        }
+        public double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate)
+        {
+            int monthsCount = CalculateMonthCount(employementDate, p_startdate, p_endDate);
+            return leavesPerMonth * monthsCount;
+        }
+        public int CalculateMonthCount(DateOnly employmentDate, DateOnly startDate, DateOnly endDate)
+        {
+            if (endDate < startDate)
+                return 0;
+            // Ensure startDate is not before employmentDate
+            if (startDate < employmentDate)
+                startDate = employmentDate;
+            // Calculate the total months between startDate and endDate
+            int monthsCount = (endDate.Year - startDate.Year) * 12 + (endDate.Month - startDate.Month);
+            return Math.Max(monthsCount, 0); // Ensure non-negative result
+        }
+
 
     }
 }
