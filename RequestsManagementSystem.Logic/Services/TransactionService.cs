@@ -7,7 +7,7 @@ using RequestsManagementSystem.DTOs.api;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
     public class TransactionService : ITransactionService
     {

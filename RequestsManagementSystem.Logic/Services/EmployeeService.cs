@@ -3,7 +3,7 @@ using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
     public class EmployeeService : IEmployeeService
     {

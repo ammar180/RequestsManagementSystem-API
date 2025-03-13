@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsManagementSystem.Da
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsManagementSystem.Core", "RequestsManagementSystem.Core\RequestsManagementSystem.Core.csproj", "{0480411B-5F6C-490B-A1C9-FAE8D76FFA2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestsManagementSystem.DTOs", "RequestsManagementSystem.DTOs\RequestsManagementSystem.DTOs.csproj", "{968EDB1E-C97A-4967-8162-483C43CAE17F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsManagementSystem.DTOs", "RequestsManagementSystem.DTOs\RequestsManagementSystem.DTOs.csproj", "{968EDB1E-C97A-4967-8162-483C43CAE17F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestsManagementSystem.Logic", "RequestsManagementSystem.Logic\RequestsManagementSystem.Logic.csproj", "{7BC1CA4D-4642-4952-845A-AB643BD1CADE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{968EDB1E-C97A-4967-8162-483C43CAE17F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{968EDB1E-C97A-4967-8162-483C43CAE17F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{968EDB1E-C97A-4967-8162-483C43CAE17F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BC1CA4D-4642-4952-845A-AB643BD1CADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BC1CA4D-4642-4952-845A-AB643BD1CADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BC1CA4D-4642-4952-845A-AB643BD1CADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BC1CA4D-4642-4952-845A-AB643BD1CADE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

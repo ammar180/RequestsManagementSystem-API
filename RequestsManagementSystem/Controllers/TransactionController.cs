@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.DTOs.api;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.Logic.Services;
 using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Controllers

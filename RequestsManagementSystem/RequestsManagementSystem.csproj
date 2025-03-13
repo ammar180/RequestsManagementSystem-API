@@ -7,7 +7,6 @@
   </PropertyGroup>
 
 	<ItemGroup>
-    <PackageReference Include="EPPlus" Version="7.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
@@ -25,6 +24,7 @@
     <ProjectReference Include="..\RequestsManagementSystem.Core\RequestsManagementSystem.Core.csproj" />
     <ProjectReference Include="..\RequestsManagementSystem.data\RequestsManagementSystem.Data.csproj" />
     <ProjectReference Include="..\RequestsManagementSystem.DTOs\RequestsManagementSystem.DTOs.csproj" />
+    <ProjectReference Include="..\RequestsManagementSystem.Logic\RequestsManagementSystem.Logic.csproj" />
   </ItemGroup>
 
 </Project>

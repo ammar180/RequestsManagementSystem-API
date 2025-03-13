@@ -1,6 +1,6 @@
 ﻿using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
     public interface IJWTService
     {

@@ -1,6 +1,6 @@
 ﻿using OfficeOpenXml;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
     public class AdminService : IAdminService
     {

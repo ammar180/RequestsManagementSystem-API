@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Configuration;
 using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Services;
 
 namespace RequestsManagementSystem.Data
 {

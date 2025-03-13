@@ -2,7 +2,7 @@
 using RequestsManagementSystem.DTOs.api;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
 	public interface ITransactionService
 	{

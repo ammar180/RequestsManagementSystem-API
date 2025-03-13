@@ -2,9 +2,10 @@
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 using System.Text;
 
-namespace RequestsManagementSystem.Services
+namespace RequestsManagementSystem.Logic.Services
 {
     public class JWTService : IJWTService
     {

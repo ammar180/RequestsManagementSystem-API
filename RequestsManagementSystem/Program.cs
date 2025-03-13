@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using RequestsManagementSystem;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
 using RequestsManagementSystem.Data.Repositories;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.Logic.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);

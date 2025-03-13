@@ -1,4 +1,4 @@
-﻿namespace RequestsManagementSystem.Services
+﻿namespace RequestsManagementSystem.Logic.Services
 {
     public interface IAdminService
     {

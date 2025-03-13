@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.Logic.Services;
 using System.Threading.Tasks;
 
 namespace RequestsManagementSystem.Controllers
