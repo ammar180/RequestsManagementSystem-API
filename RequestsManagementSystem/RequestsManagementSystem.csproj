@@ -8,7 +8,8 @@
 
 	<ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
+	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
 		  <PrivateAssets>all</PrivateAssets>
@@ -21,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RequestsManagementSystem.Client\RequestsManagementSystem.Client.csproj" />
     <ProjectReference Include="..\RequestsManagementSystem.Core\RequestsManagementSystem.Core.csproj" />
     <ProjectReference Include="..\RequestsManagementSystem.data\RequestsManagementSystem.Data.csproj" />
     <ProjectReference Include="..\RequestsManagementSystem.DTOs\RequestsManagementSystem.DTOs.csproj" />
