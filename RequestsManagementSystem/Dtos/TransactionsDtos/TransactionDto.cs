@@ -10,10 +10,10 @@ namespace RequestsManagementSystem.Dtos.TransactionsDtos
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public List<string>? Itinerary { get; set; } = default!;
-        public DateTime? RespondDate { get; set; } = null;
+        public string RespondDate { get; set; } = string.Empty;
         public string RespondMessage { get; set; } = string.Empty;
         public string Status { get; set; }
-        public DateTime CreationDate { get; set; } = DateTime.Now;
+        public string CreationDate { get; set; } = string.Empty;
 
         public EmployeeIdAndNameDto Employee { get; set; }
 

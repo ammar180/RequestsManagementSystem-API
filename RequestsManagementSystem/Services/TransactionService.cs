@@ -200,10 +200,10 @@ namespace RequestsManagementSystem.Services
             return new TransactionDto
             {
                 TransactionId = transaction.Id,
-                CreationDate = transaction.CreationDate,
+                CreationDate = transaction.CreationDate.ConvertToArabicDate() ?? "",
                 EndDate = transaction.StartDate == transaction.EndDate ? "" : transaction.EndDate.ConvertToArabicDate(),
                 Itinerary = transaction.Itinerary,
-                RespondDate = transaction.RespondDate,  
+                RespondDate = transaction.RespondDate?.ConvertToArabicDate()?? "",
                 RespondMessage =  transaction.RespondMessage,    
                 SeenStatus = transaction.SeenStatus.GetEnumDescription(),
                 StartDate = transaction.StartDate.ConvertToArabicDate(),

@@ -130,7 +130,7 @@ namespace RequestsManagementSystem.Controllers
         }
 
 
-        [HttpDelete("CanelTransaction{transactionId}")]
+        [HttpDelete("CanelTransaction/{transactionId}")]
         public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
         {
             try
