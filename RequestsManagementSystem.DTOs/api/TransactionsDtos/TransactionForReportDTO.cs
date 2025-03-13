@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
-    class TransactionForReportDTO
+    public class TransactionForReportDTO
     {
         public string StartDate { get; set; }
         public string EndDate { get; set; }

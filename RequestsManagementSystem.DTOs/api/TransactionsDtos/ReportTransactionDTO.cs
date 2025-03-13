@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
-    class ReportTransactionDTO
+    public class ReportTransactionDTO
     {
         public string Title { get; set; }
         public string TotalLeaves { get; set; }
