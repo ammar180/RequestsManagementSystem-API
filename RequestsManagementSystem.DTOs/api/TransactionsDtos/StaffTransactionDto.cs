@@ -1,4 +1,4 @@
-﻿namespace RequestsManagementSystem.Dtos.TransactionsDtos
+﻿namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
     public class StaffTransactionDto : GetTransactionByEmployeeDto
     {

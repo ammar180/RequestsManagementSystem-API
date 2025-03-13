@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RequestsManagementSystem.DTOs.Validations;
+using System.ComponentModel.DataAnnotations;
 
-namespace RequestsManagementSystem.Dtos.TransactionsDtos
+namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
     [MissionRequestValidation]
     [LeaveRequestValidation]

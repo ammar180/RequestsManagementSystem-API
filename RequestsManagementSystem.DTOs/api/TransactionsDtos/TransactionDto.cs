@@ -1,6 +1,6 @@
-﻿using RequestsManagementSystem.Dtos.EmployeeDtos;
+﻿using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
-namespace RequestsManagementSystem.Dtos.TransactionsDtos
+namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
     public class TransactionDto
     {

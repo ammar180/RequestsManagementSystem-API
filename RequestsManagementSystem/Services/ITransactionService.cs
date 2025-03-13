@@ -1,6 +1,6 @@
 ﻿using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Dtos;
-using RequestsManagementSystem.Dtos.TransactionsDtos;
+using RequestsManagementSystem.DTOs.api;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Services
 {

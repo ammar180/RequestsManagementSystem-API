@@ -1,4 +1,4 @@
-﻿using RequestsManagementSystem.Dtos.EmployeeDtos;
+﻿using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
 namespace RequestsManagementSystem.Services
 {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 
-namespace RequestsManagementSystem.Dtos.EmployeeDtos
+namespace RequestsManagementSystem.DTOs.api.EmployeeDtos
 {
     public class UpdatePasswordEmployeeDto
     {

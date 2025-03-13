@@ -1,4 +1,4 @@
-﻿namespace RequestsManagementSystem.Dtos
+﻿namespace RequestsManagementSystem.DTOs.api
 {
     public class BaseResponse
     {

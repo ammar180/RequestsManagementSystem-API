@@ -1,14 +1,13 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
+﻿using RequestsManagementSystem.DTOs.Validations;
 using System.ComponentModel.DataAnnotations;
 
-namespace RequestsManagementSystem.Dtos.TransactionsDtos
+namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
 {
     [MissionRequestValidation]
     [LeaveRequestValidation]
     public class CreateTransactionDto
     {
-        [Required(ErrorMessage ="The title field is requird")]
+        [Required(ErrorMessage = "The title field is requird")]
         public string Title { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "The type field is requird")]

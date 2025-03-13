@@ -3,9 +3,9 @@ using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
 using RequestsManagementSystem.Core.Interfaces;
-using RequestsManagementSystem.Dtos;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
-using RequestsManagementSystem.Dtos.TransactionsDtos;
+using RequestsManagementSystem.DTOs.api;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Services
 {

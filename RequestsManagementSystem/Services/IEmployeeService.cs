@@ -1,6 +1,6 @@
 ﻿using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
 namespace RequestsManagementSystem
 {

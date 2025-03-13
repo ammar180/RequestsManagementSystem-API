@@ -1,7 +1,7 @@
 ﻿using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Interfaces;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
 namespace RequestsManagementSystem.Services
 {
