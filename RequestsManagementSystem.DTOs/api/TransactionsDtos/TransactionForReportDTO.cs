@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
+{
+    class TransactionForReportDTO
+    {
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string Duration { get; set; }
+    }
+}
