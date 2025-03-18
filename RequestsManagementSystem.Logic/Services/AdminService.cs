@@ -1,14 +1,30 @@
-﻿using OfficeOpenXml;
+﻿using ExcelDataReader;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using ExcelDataReader;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
+using RequestsManagementSystem.Core.Enums;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Logic.Services
 {
     public class AdminService : IAdminService
     {
         private readonly IEmployeeService _employeeService;
+        private readonly ITransactionService _transactionService;
 
-        public AdminService(IEmployeeService employeeService)
+        public AdminService(IEmployeeService employeeService, ITransactionService transactionService)
         {
             _employeeService = employeeService;
+            _transactionService = transactionService;
         }
 
 
@@ -46,5 +62,93 @@ namespace RequestsManagementSystem.Logic.Services
                 return package.GetAsByteArray(); // Return as byte array
             }
         }
+
+        public async Task ImportEmployeesFromExcel(IFormFile excelFile)
+        {
+            // Read and parse the Excel file to extract employee data
+            var employees = await ExtractEmployeesFromExcelAsync(excelFile);
+
+            foreach (var employeeDto in employees)
+            {
+
+                var employee = await _employeeService.GetEmployeeByCodeAsync(employeeDto.Code);
+                if (employee == null)
+                {
+
+                    continue;
+                }
+
+               
+                if (employeeDto.RegularBalance > 0)
+                {
+                    var regularLeaveTransaction = new CreateTransactionDto
+                    {
+                        Title = "Leave",
+                        Type = "AdditionalRegularLeave",
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(employeeDto.RegularBalance),
+                        SubstituteEmployeeId = 0, // Assuming no substitute
+                        EmployeeId = employee.EmployeeId
+                    };
+                    await _transactionService.AddTransactionAsync(regularLeaveTransaction);
+                }
+
+               
+                if (employeeDto.CausalBalance > 0)
+                {
+                    var casualLeaveTransaction = new CreateTransactionDto
+                    {
+                        Title = "Leave",
+                        Type = "AdditionalCasualLeave",
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(employeeDto.CausalBalance),
+                        SubstituteEmployeeId = 0, // Assuming no substitute
+                        EmployeeId = employee.EmployeeId
+                    };
+                    await _transactionService.AddTransactionAsync(casualLeaveTransaction);
+                }
+            }
+        }
+
+        public async Task<List<EmployeeExcelDto>> ExtractEmployeesFromExcelAsync(IFormFile file)
+        {
+            var employees = new List<EmployeeExcelDto>();
+
+            if (file == null || file.Length <= 0)
+                throw new ArgumentException("The uploaded file is empty.");
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                        throw new ArgumentException("No worksheet found in the Excel file.");
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var employeeDto = new EmployeeExcelDto
+                        {
+                            Code = worksheet.Cells[row, 1].Text.Trim(),
+                            Name = worksheet.Cells[row, 2].Text.Trim(),
+                            RegularBalance = double.TryParse(worksheet.Cells[row, 3].Text.Trim(), out double regularBalance) ? regularBalance : 0,
+                            CausalBalance = double.TryParse(worksheet.Cells[row, 4].Text.Trim(), out double causalBalance) ? causalBalance : 0
+                        };
+
+                        employees.Add(employeeDto);
+                    }
+                }
+            }
+
+            return employees;
+        }
+
+
+
     }
 }
+
