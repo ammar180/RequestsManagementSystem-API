@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
+using RequestsManagementSystem.Logic.Services;
 
 namespace RequestsManagementSystem.Controllers
 {

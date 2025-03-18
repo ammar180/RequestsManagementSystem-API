@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RequestsManagementSystem.Dtos;
-using RequestsManagementSystem.Dtos.TransactionsDtos;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.DTOs.api;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+using RequestsManagementSystem.Logic.Services;
 using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Controllers
@@ -130,17 +130,17 @@ namespace RequestsManagementSystem.Controllers
         }
 
 
-        [HttpDelete("CanelTransaction{transactionId}")]
+        [HttpDelete("CanelTransaction/{transactionId}")]
         public async Task<IActionResult> RemoveTransactionAsync(int transactionId)
         {
             try
             {
-                var result = await _transactionService.CancelTransactionAsync(transactionId);
+                var (Success, Message) = await _transactionService.CancelTransactionAsync(transactionId);
 
-                if (!result.Success)
-                    return BadRequest(result.Message);
+                if (!Success)
+                    return BadRequest(Message);
 
-                return Ok(result.Message);
+                return Ok(Message);
             }
             catch (Exception ex)
             {

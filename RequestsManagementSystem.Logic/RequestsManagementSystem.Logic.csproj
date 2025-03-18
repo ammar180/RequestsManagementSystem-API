@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RequestsManagementSystem.Core\RequestsManagementSystem.Core.csproj" />
+    <ProjectReference Include="..\RequestsManagementSystem.data\RequestsManagementSystem.Data.csproj" />
+    <ProjectReference Include="..\RequestsManagementSystem.DTOs\RequestsManagementSystem.DTOs.csproj" />
+  </ItemGroup>
+
+</Project>

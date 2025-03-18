@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using RequestsManagementSystem;
 using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
 using RequestsManagementSystem.Data.Repositories;
-using RequestsManagementSystem.Services;
+using RequestsManagementSystem.Logic.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,6 +85,24 @@ builder.Services.AddCors(options =>
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errorMessage = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault(); // Get the first error message
+
+		return new BadRequestObjectResult(
+			new
+			{
+				Status = false,
+				Message = errorMessage ?? "حدث خطأ في التحقق من صحة البيانات"
+			});
+    };
 });
 
 builder.Services.AddControllers();

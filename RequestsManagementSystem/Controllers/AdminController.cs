@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RequestsManagementSystem.Logic.Services;
 using RequestsManagementSystem.Dtos.EmployeeDtos;
-using RequestsManagementSystem.Services;
 using System.Threading.Tasks;
 
 namespace RequestsManagementSystem.Controllers
