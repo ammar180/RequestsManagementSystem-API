@@ -9,7 +9,10 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
+using RequestsManagementSystem.Core.Enums;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Logic.Services
 {
@@ -60,49 +63,91 @@ namespace RequestsManagementSystem.Logic.Services
             }
         }
 
-
-
-        public async Task<List<EmployeeExcelDto>> ImportEmployeesFromExcel(IFormFile file)
+        public async Task ImportEmployeesFromExcel(IFormFile excelFile)
         {
-            var employeesList = new List<EmployeeExcelDto>();
+            // Read and parse the Excel file to extract employee data
+            var employees = await ExtractEmployeesFromExcelAsync(excelFile);
 
-            try
+            foreach (var employeeDto in employees)
             {
-                if (file == null || file.Length == 0)
+
+                var employee = await _employeeService.GetEmployeeByCodeAsync(employeeDto.Code);
+                if (employee == null)
                 {
-                    throw new Exception("No file uploaded");
+
+                    continue;
                 }
 
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); // Required for ExcelReader
-
-                using (var stream = file.OpenReadStream())
+               
+                if (employeeDto.RegularBalance > 0)
                 {
-                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    var regularLeaveTransaction = new CreateTransactionDto
                     {
-                        while (reader.Read()) // Read each row
+                        Title = "Leave",
+                        Type = "AdditionalRegularLeave",
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(employeeDto.RegularBalance),
+                        SubstituteEmployeeId = 0, // Assuming no substitute
+                        EmployeeId = employee.EmployeeId
+                    };
+                    await _transactionService.AddTransactionAsync(regularLeaveTransaction);
+                }
+
+               
+                if (employeeDto.CausalBalance > 0)
+                {
+                    var casualLeaveTransaction = new CreateTransactionDto
+                    {
+                        Title = "Leave",
+                        Type = "AdditionalCasualLeave",
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(employeeDto.CausalBalance),
+                        SubstituteEmployeeId = 0, // Assuming no substitute
+                        EmployeeId = employee.EmployeeId
+                    };
+                    await _transactionService.AddTransactionAsync(casualLeaveTransaction);
+                }
+            }
+        }
+
+        public async Task<List<EmployeeExcelDto>> ExtractEmployeesFromExcelAsync(IFormFile file)
+        {
+            var employees = new List<EmployeeExcelDto>();
+
+            if (file == null || file.Length <= 0)
+                throw new ArgumentException("The uploaded file is empty.");
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                        throw new ArgumentException("No worksheet found in the Excel file.");
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var employeeDto = new EmployeeExcelDto
                         {
-                            if (reader.Depth == 0) continue; // Skip header row if applicable
+                            Code = worksheet.Cells[row, 1].Text.Trim(),
+                            Name = worksheet.Cells[row, 2].Text.Trim(),
+                            RegularBalance = double.TryParse(worksheet.Cells[row, 3].Text.Trim(), out double regularBalance) ? regularBalance : 0,
+                            CausalBalance = double.TryParse(worksheet.Cells[row, 4].Text.Trim(), out double causalBalance) ? causalBalance : 0
+                        };
 
-                            var employeeDto = new EmployeeExcelDto
-                            {
-                                Code = reader.GetValue(0)?.ToString() ?? string.Empty,
-                                Name = reader.GetValue(1)?.ToString() ?? string.Empty,
-                                RegularBalance = double.TryParse(reader.GetValue(2)?.ToString(), out double regular) ? regular : 0,
-                                CausalBalance = double.TryParse(reader.GetValue(3)?.ToString(), out double causal) ? causal : 0
-                            };
-
-                            employeesList.Add(employeeDto);
-                        }
+                        employees.Add(employeeDto);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
 
-            return employeesList;
+            return employees;
         }
+
+
 
     }
 }

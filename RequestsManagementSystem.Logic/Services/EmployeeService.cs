@@ -31,12 +31,41 @@ namespace RequestsManagementSystem.Logic.Services
                 EmployeeName = employee.Name,
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
-                ManagerName= employee.Manager?.Name ?? "",
+                ManagerName = employee.Manager?.Name ?? "",
                 RegularLeaveCount = balanceResult.RegularBalance.ToString("0.00"),
                 CasualLeaveCount = balanceResult.CasualBalance.ToString("0.00"),
             };
             return resut;
         }
+        public async Task<EmployeeDto> GetEmployeeByCodeAsync(string code)
+        {
+            // Validate input
+            if (string.IsNullOrEmpty(code))
+                throw new ArgumentException("Employee code cannot be null or empty.", nameof(code));
+
+            // Retrieve employee by code, including related entities
+            var employee = await _employeeRepository.GetEmployeeByCode(code, new[] { "Manager", "Transactions", "EmployeeLevel" })
+                ?? throw new NullReferenceException("المستخدم غير موجود");
+
+            // Calculate employee balance
+            var balanceResult = GetEmployeeBalance(employee);
+
+            // Map employee data to EmployeeDto
+            var result = new EmployeeDto
+            {
+                EmployeeId = employee.Id,
+                EmployeeCode = employee.Code,
+                EmployeeName = employee.Name,
+                DepartmentName = employee.DepartmentName,
+                DateOfEmployment = employee.DateOfEmployment,
+                ManagerName = employee.Manager?.Name ?? string.Empty,
+                RegularLeaveCount = balanceResult.RegularBalance.ToString("0.00"),
+                CasualLeaveCount = balanceResult.CasualBalance.ToString("0.00"),
+            };
+
+            return result;
+        }
+
 
         // Get List of Employees By Department Name
         public async Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName)

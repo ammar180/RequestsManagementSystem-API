@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RequestsManagementSystem.Logic.Services;
-using RequestsManagementSystem.Dtos.EmployeeDtos;
+using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using System.Threading.Tasks;
+using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -42,22 +43,25 @@ namespace RequestsManagementSystem.Controllers
                 return StatusCode(500, $"An error occurred while generating the Excel file: {ex.Message}");
             }
         }
-        [HttpPost("import-excel")]
-        public async Task<IActionResult> ImportEmployeesFromExcel([FromForm] IFormFile file)
+        [HttpPost("import-employees")]
+        public async Task<IActionResult> ImportEmployeesFromExcel(IFormFile file)
         {
+            if (file == null || file.Length <= 0)
+                return BadRequest("Please upload a valid Excel file.");
+
             try
             {
-                if (file == null || file.Length == 0)
-                    return BadRequest("No file uploaded.");
+                await _adminService.ImportEmployeesFromExcel(file);
 
-                List<EmployeeExcelDto> employees = await _adminService.ImportEmployeesFromExcel(file);
+                // Process the list of employees as needed, e.g., save to the database
 
-                return Ok(employees);
+                return Ok("Employees imported successfully.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"An error occurred while importing the Excel file: {ex.Message}");
             }
         }
+
     }
 }
