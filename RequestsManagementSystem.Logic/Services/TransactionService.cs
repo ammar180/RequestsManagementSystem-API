@@ -267,12 +267,12 @@ namespace RequestsManagementSystem.Logic.Services
             
             var x = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
             
-            AdditionalLeaves = x.FirstOrDefault(n => n.type.Id == (int)(type switch { ETransactionType.RegularLeave => ETransactionType.AdditionalRegularLeave, ETransactionType.CasualLeave => ETransactionType.AdditionalCasualLeave })).totalConsumedDays;
-            ConsumedLeaves = x.FirstOrDefault(n => n.type.Id == (int)type).totalConsumedDays;
+            AdditionalLeaves = x.FirstOrDefault(n => n.type.eType == (type switch { ETransactionType.RegularLeave => ETransactionType.AdditionalRegularLeave, ETransactionType.CasualLeave => ETransactionType.AdditionalCasualLeave })).totalConsumedDays;
+            ConsumedLeaves = x.FirstOrDefault(n => n.type.eType == type).totalConsumedDays;
             RemainingLeaves = (TotalLeaves + AdditionalLeaves + ConsumedLeaves);
 
             var FilteredTransactions = employee.Transactions.
-                                                Where(t => t.Type.Id == (int)type).
+                                                Where(t => t.Type.eType == type).
                                                 Where(t => t.StartDate.Date >= StartDate && t.EndDate <= EndDate).
                                                 Where(t => t.Status == TransactionStatus.Approved).ToList();
 
@@ -310,10 +310,7 @@ namespace RequestsManagementSystem.Logic.Services
 
             foreach (var (type, totalConsumedDays) in consumedLeaves)
             {
-                if (!Enum.TryParse(type.Name, false, out ETransactionType typeResuls))
-                    typeResuls = ETransactionType.Other;
-
-                switch (typeResuls)
+                switch (type.eType)
                 {
                     case ETransactionType.CasualLeave:
                         casualBalance += totalConsumedDays; // i.e. current year consumed leave -3
