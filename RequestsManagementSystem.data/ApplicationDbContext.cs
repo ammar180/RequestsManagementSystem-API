@@ -18,6 +18,8 @@ namespace RequestsManagementSystem.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.Manager)
                 .WithMany(m => m.ManagerStaff)
@@ -60,7 +62,7 @@ namespace RequestsManagementSystem.Data
             modelBuilder.Entity<TransactionType>().HasData(
                 transactionTypes.Select(t => new TransactionType
                 {
-                    Id = int.Parse(t["Id"]!),
+                    var tType = new TransactionType
                     Name = t["Name"]!,
                     Description = t["Description"]!,
                     Unit = double.Parse(t["Unit"]!),
