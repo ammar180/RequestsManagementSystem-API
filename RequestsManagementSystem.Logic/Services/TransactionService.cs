@@ -264,17 +264,11 @@ namespace RequestsManagementSystem.Logic.Services
             double TotalLeaves, ConsumedLeaves, AdditionalLeaves, RemainingLeaves;
             TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, DateOnly.FromDateTime( StartDate.Value) , DateOnly.FromDateTime(EndDate.Value));
 
-            IEnumerable<(TransactionType type, double totalConsumedDays)> leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
+            var leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
             
-            AdditionalLeaves = leavesGoupedSammary.FirstOrDefault(n => n.type.eType == (type switch { 
-                ETransactionType.RegularLeave => ETransactionType.AdditionalRegularLeave,
-                ETransactionType.CasualLeave => ETransactionType.AdditionalCasualLeave 
-            })).totalConsumedDays;
+            AdditionalLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
 
-            ConsumedLeaves = leavesGoupedSammary.FirstOrDefault(n => n.type.eType == (type switch
-            {
-                (ETransactionType.RegularLeave or ETransactionType.HalfDay or ETransactionType.QuarterDay) => ETransactionType.RegularLeave,
-            })).totalConsumedDays;
+            ConsumedLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;
 
             RemainingLeaves = (TotalLeaves + AdditionalLeaves + ConsumedLeaves);
 
