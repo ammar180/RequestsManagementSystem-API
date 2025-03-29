@@ -1,5 +1,4 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+﻿using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.DTOs.Validations
@@ -8,9 +7,9 @@ namespace RequestsManagementSystem.DTOs.Validations
     {
         protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
         {
-            if (value is CreateTransactionDto dto && Enum.TryParse(dto.Title, true, out TransactionTitle title))
+            if (value is CreateTransactionDto dto)
             {
-                if (title == TransactionTitle.Mission)
+                if (dto.Title == "Mission")
                 {
                     var today = DateTime.Today;
 
