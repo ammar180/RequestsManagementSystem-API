@@ -42,7 +42,7 @@ namespace RequestsManagementSystem.Logic.Services
                 var employeeTransactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(transactionDto.EmployeeId);
 
                 employeeTransactions = employeeTransactions
-                    .Where(x => x.Title == TransactionTitle.Leave && x.Type.Id == (int)ETransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
+                    .Where(x => x.Type.Id == (int)ETransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
                 
                 if (employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-1)) &&
                     employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-2)))
@@ -52,7 +52,6 @@ namespace RequestsManagementSystem.Logic.Services
 
                 var transaction = new Transaction
                 {
-                    Title = Enum.Parse<TransactionTitle>(transactionDto.Title, true),
                     StartDate = transactionDto.StartDate,
                     EndDate = transactionDto.EndDate,
                     SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
@@ -114,7 +113,7 @@ namespace RequestsManagementSystem.Logic.Services
                 transactions.Select(t => new GetTransactionByEmployeeDto
                 {
                     TransactionId = t.Id,
-                    Title = t.Title.GetEnumDescription(),
+                    Title = t.Type.ParentType,
                     Type = t.Type.Description,
                     Status = t.Status.GetEnumDescription(),
                     DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
@@ -151,7 +150,7 @@ namespace RequestsManagementSystem.Logic.Services
                 transactions.Select(async t => new StaffTransactionDto
                 {
                     TransactionId = t.Id,
-                    Title = t.Title.GetEnumDescription(),
+                    Title = t.Type.ParentType,
                     Type = t.Type.Description,
                     DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
                     SendDate = t.CreationDate.ConvertToArabicDate(),
@@ -218,7 +217,7 @@ namespace RequestsManagementSystem.Logic.Services
                     EmployeeName = transaction.Employee.Name,
                     EmployeeId = transaction.Employee.Id,
                 },
-                Title = transaction.Title.GetEnumDescription(),
+                Title = transaction.Type.ParentType,
                 Type = transaction.Type.Description,       
                 TakenDays = CalculateTakenDays(transaction),
             };

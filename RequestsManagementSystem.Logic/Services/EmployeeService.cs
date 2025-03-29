@@ -50,7 +50,7 @@ namespace RequestsManagementSystem.Logic.Services
                 ?? throw new NullReferenceException("المستخدم غير موجود");
 
             // Calculate employee balance
-            var balanceResult = GetEmployeeBalance(employee);
+            var balanceResult = _transactionService.GetEmployeeBalance(employee);
 
             // Map employee data to EmployeeDto
             var result = new EmployeeDto

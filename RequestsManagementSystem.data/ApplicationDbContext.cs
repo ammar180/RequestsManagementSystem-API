@@ -58,13 +58,19 @@ namespace RequestsManagementSystem.Data
             // Load transaction types from appsettings.json
             var transactionTypes = _configuration.GetSection("TransactionTypes").GetChildren();
             modelBuilder.Entity<TransactionType>().HasData(
-                transactionTypes.Select(t => new TransactionType
+                transactionTypes.Select(t =>
                 {
                     var tType = new TransactionType
-                    Name = t["Name"]!,
-                    Description = t["Description"]!,
-                    Unit = double.Parse(t["Unit"]!),
-                    Sign = int.Parse(t["Sign"]!)
+                    {
+                        Name = t["Name"]!,
+                        Description = t["Description"]!,
+                        Unit = double.Parse(t["Unit"]!),
+                        Sign = int.Parse(t["Sign"]!),
+                        ParentType = t["Parent"] ?? "",
+                    };
+
+                    tType.Id = (int)tType.eType;                    
+                    return tType;
                 }).ToArray()
             );
 
@@ -78,17 +84,8 @@ namespace RequestsManagementSystem.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Employee>()
-                    .Property(e => e.EmployeeRole)
-                    .HasConversion<short>();
-            modelBuilder.Entity<Transaction>()
-                .Property(p => p.Title)
+                .Property(e => e.EmployeeRole)
                 .HasConversion<short>();
-            modelBuilder.Entity<Transaction>()
-                .Property(p => p.Type)
-                .HasConversion(
-                    type => type.Id,
-                    typeId => _transactionTypes.First(t => t.Id == typeId)
-                );
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Status)
                 .HasConversion<short>();
