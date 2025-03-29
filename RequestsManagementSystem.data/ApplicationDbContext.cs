@@ -7,13 +7,11 @@ namespace RequestsManagementSystem.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly List<TransactionType> _transactionTypes;
         private readonly IConfiguration _configuration;
 
         public ApplicationDbContext(IConfiguration configuration, DbContextOptions options) : base(options)
         {
             _configuration = configuration;
-            _transactionTypes = TransactionTypes.ToList();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -69,6 +67,15 @@ namespace RequestsManagementSystem.Data
                     Sign = int.Parse(t["Sign"]!)
                 }).ToArray()
             );
+
+            modelBuilder.Entity<Transaction>()
+                .Navigation(t => t.Type)
+                .AutoInclude();
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Type)
+                .WithMany()
+                .HasForeignKey(t => t.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Employee>()
                     .Property(e => e.EmployeeRole)

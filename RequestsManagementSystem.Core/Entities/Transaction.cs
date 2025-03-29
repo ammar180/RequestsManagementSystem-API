@@ -8,7 +8,7 @@ namespace RequestsManagementSystem.Core.Entities
     {
         [Key]
         public int Id { get; set; }
-        public TransactionTitle Title { get; set; }
+        public int TypeId { get; set; }
         public TransactionType Type { get; set; } = default!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
