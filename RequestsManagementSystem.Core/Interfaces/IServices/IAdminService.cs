@@ -1,7 +1,7 @@
-﻿using RequestsManagementSystem.Core.Entities;
+﻿using Microsoft.AspNetCore.Http;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
-using Microsoft.AspNetCore.Http;
-namespace RequestsManagementSystem.Logic.Services
+
+namespace RequestsManagementSystem.Core.Interfaces.IServices
 {
     public interface IAdminService
     {

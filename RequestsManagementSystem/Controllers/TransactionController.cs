@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
-using RequestsManagementSystem.Logic.Services;
-using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -106,22 +105,22 @@ namespace RequestsManagementSystem.Controllers
             }
 
         }
-		[HttpPatch("{id}/seen")]
-		public async Task<IActionResult> UpdateSeenStatus(int id, string whoSeen)
-		{
-			try
-			{
-				await _transactionService.SetSeenStatus(id, whoSeen);
-				return NoContent();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
-		}
+        [HttpPatch("{id}/seen")]
+        public async Task<IActionResult> UpdateSeenStatus(int id, string whoSeen)
+        {
+            try
+            {
+                await _transactionService.SetSeenStatus(id, whoSeen);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpPut("EditTransaction")]
-        public async Task<IActionResult> EditTransaction(int transactionId,UpdateTransactionDto transactionDto)
+        public async Task<IActionResult> EditTransaction(int transactionId, UpdateTransactionDto transactionDto)
         {
             var result = await _transactionService.EditTransactionAsync(transactionId, transactionDto);
             if (!result.Status)
@@ -174,7 +173,7 @@ namespace RequestsManagementSystem.Controllers
         }
 
         [HttpGet("EmployeeReport/{EmployeeId}")]
-        public async Task<IActionResult> EmployeeReport(int EmployeeId, [FromQuery]string p_type, [FromQuery]DateTime? StartDate, [FromQuery]DateTime? EndDate)
+        public async Task<IActionResult> EmployeeReport(int EmployeeId, [FromQuery] string p_type, [FromQuery] DateTime? StartDate, [FromQuery] DateTime? EndDate)
         {
             try
             {

@@ -2,7 +2,8 @@
 using RequestsManagementSystem.Core.Entities;
 using RequestsManagementSystem.Core.Enums;
 using RequestsManagementSystem.Core.Extentions;
-using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
@@ -37,13 +38,13 @@ namespace RequestsManagementSystem.Logic.Services
 
         public async Task<bool> AddTransactionAsync(CreateTransactionDto transactionDto)
         {
-			try
-			{
+            try
+            {
                 var employeeTransactions = await _transactionRepository.GetTransactionByEmployeeIdAsync(transactionDto.EmployeeId);
 
                 employeeTransactions = employeeTransactions
                     .Where(x => x.Type.Id == (int)ETransactionType.RegularLeave && x.Status == TransactionStatus.Approved);
-                
+
                 if (employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-1)) &&
                     employeeTransactions.Any(t => t.StartDate.Date == DateTime.Now.Date.AddDays(-2)))
                 {
@@ -72,15 +73,15 @@ namespace RequestsManagementSystem.Logic.Services
 
                 return true;
             }
-			catch (DbUpdateException)
-			{
+            catch (DbUpdateException)
+            {
                 throw new InvalidOperationException("حدث خطأ أثناء حفظ الطلب، ربما ادخلت موظف غير متاح");
-			}
+            }
         }
 
         public async Task<BaseResponse> EditTransactionAsync(int transactionId, UpdateTransactionDto transactionDto)
         {
-            var transaction = (await _transactionRepository.GetTransactionById(transactionId))?? throw new InvalidOperationException("ليسة موجودة");
+            var transaction = (await _transactionRepository.GetTransactionById(transactionId)) ?? throw new InvalidOperationException("ليسة موجودة");
             try
             {
                 transaction.StartDate = transactionDto.StartDate;
@@ -172,7 +173,7 @@ namespace RequestsManagementSystem.Logic.Services
         }
 
         public async Task SetSeenStatus(int id, string whoSeen)
-		{
+        {
             var transaction = await _transactionRepository.GetTransactionByIdAsync(id) ?? throw new NullReferenceException("Transaction Not found");
             if (!Enum.TryParse(whoSeen, true, out Roles whoSeenEnum))
                 throw new InvalidOperationException("Can't Determined who Seen the transaction");
@@ -188,12 +189,12 @@ namespace RequestsManagementSystem.Logic.Services
                     break;
             }
             await _transactionRepository.SaveChanges();
-		}
+        }
 
         public async Task<TransactionDto?> GetTransactionByIdAsync(int id)
         {
             var transaction = await _transactionRepository.GetTransactionByIdAsync(id, [nameof(Transaction.Employee), nameof(Transaction.SubstituteEmployee)]);
-            if(transaction is null)
+            if (transaction is null)
                 return null;
 
             return new TransactionDto
@@ -202,8 +203,8 @@ namespace RequestsManagementSystem.Logic.Services
                 CreationDate = transaction.CreationDate.ConvertToArabicDate() ?? "",
                 EndDate = transaction.StartDate == transaction.EndDate ? "" : transaction.EndDate.ConvertToArabicDate(),
                 Itinerary = transaction.Itinerary,
-                RespondDate = transaction.RespondDate?.ConvertToArabicDate()?? "",
-                RespondMessage =  transaction.RespondMessage,    
+                RespondDate = transaction.RespondDate?.ConvertToArabicDate() ?? "",
+                RespondMessage = transaction.RespondMessage,
                 SeenStatus = transaction.SeenStatus.GetEnumDescription(),
                 StartDate = transaction.StartDate.ConvertToArabicDate(),
                 Status = transaction.Status.GetEnumDescription(),
@@ -218,7 +219,7 @@ namespace RequestsManagementSystem.Logic.Services
                     EmployeeId = transaction.Employee.Id,
                 },
                 Title = transaction.Type.ParentType,
-                Type = transaction.Type.Description,       
+                Type = transaction.Type.Description,
                 TakenDays = CalculateTakenDays(transaction),
             };
         }
@@ -257,15 +258,15 @@ namespace RequestsManagementSystem.Logic.Services
             if (!Enum.TryParse(p_type, true, out ETransactionType type)) // type: regular / casual
                 throw new KeyNotFoundException("Couldn't Determine report type for transaction!");
             var employee = await _employeeRepo.GetEmployeeById(EmployeeId, [nameof(Employee.Transactions), nameof(Employee.EmployeeLevel)]) ?? throw new KeyNotFoundException("Employee Id doesn't Exist");
-            
+
             StartDate ??= new DateTime(DateTime.Now.Year, 1, 1);
             EndDate ??= DateTime.Now;
-            
+
             double TotalLeaves, ConsumedLeaves, AdditionalLeaves, RemainingLeaves;
-            TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, DateOnly.FromDateTime( StartDate.Value) , DateOnly.FromDateTime(EndDate.Value));
+            TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
 
             var leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
-            
+
             AdditionalLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
 
             ConsumedLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;

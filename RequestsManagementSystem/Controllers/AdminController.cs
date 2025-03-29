@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RequestsManagementSystem.Logic.Services;
-using RequestsManagementSystem.DTOs.api.EmployeeDtos;
-using System.Threading.Tasks;
-using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 
 namespace RequestsManagementSystem.Controllers
 {

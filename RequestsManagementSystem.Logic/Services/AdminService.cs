@@ -1,17 +1,7 @@
-﻿using ExcelDataReader;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
 using OfficeOpenXml;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ExcelDataReader;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
-using RequestsManagementSystem.Core.Enums;
-using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 
 namespace RequestsManagementSystem.Logic.Services
@@ -78,7 +68,7 @@ namespace RequestsManagementSystem.Logic.Services
                     continue;
                 }
 
-               
+
                 if (employeeDto.RegularBalance > 0)
                 {
                     var regularLeaveTransaction = new CreateTransactionDto
@@ -93,7 +83,7 @@ namespace RequestsManagementSystem.Logic.Services
                     await _transactionService.AddTransactionAsync(regularLeaveTransaction);
                 }
 
-               
+
                 if (employeeDto.CausalBalance > 0)
                 {
                     var casualLeaveTransaction = new CreateTransactionDto
