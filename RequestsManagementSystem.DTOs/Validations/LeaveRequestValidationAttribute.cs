@@ -1,5 +1,4 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+﻿using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.DTOs.Validations

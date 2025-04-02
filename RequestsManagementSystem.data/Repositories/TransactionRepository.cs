@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Core.Enums;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
 
 namespace RequestsManagementSystem.Data.Repositories
 {

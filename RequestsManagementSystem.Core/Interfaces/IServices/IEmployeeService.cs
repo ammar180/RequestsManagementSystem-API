@@ -1,7 +1,6 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.DTOs.api.EmployeeDtos;
+﻿using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
-namespace RequestsManagementSystem.Logic.Services
+namespace RequestsManagementSystem.Core.Interfaces.IServices
 {
     public interface IEmployeeService
     {

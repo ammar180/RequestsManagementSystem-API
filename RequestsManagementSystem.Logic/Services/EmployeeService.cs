@@ -1,6 +1,6 @@
 ﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
 namespace RequestsManagementSystem.Logic.Services
@@ -50,7 +50,7 @@ namespace RequestsManagementSystem.Logic.Services
                 ?? throw new NullReferenceException("المستخدم غير موجود");
 
             // Calculate employee balance
-            var balanceResult = GetEmployeeBalance(employee);
+            var balanceResult = _transactionService.GetEmployeeBalance(employee);
 
             // Map employee data to EmployeeDto
             var result = new EmployeeDto
@@ -103,17 +103,17 @@ namespace RequestsManagementSystem.Logic.Services
             var refreshToken = _JWT.GenerateJwtToken(payload, true);
             return new LoginResultDto
             {
-                token= token,
+                token = token,
                 refreshToken = refreshToken,
                 EmployeeDto = await GetEmployeeDataAsync(employee.Id),
-                Message="تم تسجيل الدخول بنجاح",
-                Status=true
+                Message = "تم تسجيل الدخول بنجاح",
+                Status = true
             };
         }
         public async Task<UpdatePasswordResultDto> UpdatePasswordAsync(UpdatePasswordEmployeeDto EmployeeDto)
         {
             // Validate employee credentials
-            if(EmployeeDto.EmployeeId == 0)
+            if (EmployeeDto.EmployeeId == 0)
             {
                 return new UpdatePasswordResultDto
                 {
@@ -163,7 +163,7 @@ namespace RequestsManagementSystem.Logic.Services
                     message = "كلمة المرور القديمة غير صحيحة",
                 };
             }
-            if(EmployeeDto.Password != EmployeeDto.ConfirmPassword)
+            if (EmployeeDto.Password != EmployeeDto.ConfirmPassword)
             {
                 return new UpdatePasswordResultDto
                 {
@@ -173,7 +173,7 @@ namespace RequestsManagementSystem.Logic.Services
             }
             employee.Password = EmployeeDto.Password;
             bool response = await _employeeRepository.UpdateAsync(employee);
-            if(response == true)
+            if (response == true)
             {
                 return new UpdatePasswordResultDto
                 {

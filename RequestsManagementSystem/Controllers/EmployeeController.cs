@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using RequestsManagementSystem.Core.Entities;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
-using RequestsManagementSystem.Logic.Services;
 
 namespace RequestsManagementSystem.Controllers
 {
@@ -26,12 +24,12 @@ namespace RequestsManagementSystem.Controllers
         {
             try
             {
-                var Response= await _employeeService.LoginAsync(loginEmployeeDto);
+                var Response = await _employeeService.LoginAsync(loginEmployeeDto);
                 return Ok(Response);
             }
-            catch(UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException ex)
             {
-                var result= new LoginResultDto
+                var result = new LoginResultDto
                 {
                     Message = ex.Message,
                     Status = false
@@ -45,8 +43,8 @@ namespace RequestsManagementSystem.Controllers
             }
 
         }
-		// update employee password
-		[HttpPost("UpdatePassword")]
+        // update employee password
+        [HttpPost("UpdatePassword")]
         [Authorize]
         public async Task<ActionResult<UpdatePasswordResultDto>> UpdatePassword(UpdatePasswordEmployeeDto EmployeeDto)
         {
@@ -88,7 +86,7 @@ namespace RequestsManagementSystem.Controllers
         {
             try
             {
-                if(string.IsNullOrEmpty(refreshToken) || _jWTService.IsTokenExpired(refreshToken))
+                if (string.IsNullOrEmpty(refreshToken) || _jWTService.IsTokenExpired(refreshToken))
                 {
                     return Unauthorized();
                 }

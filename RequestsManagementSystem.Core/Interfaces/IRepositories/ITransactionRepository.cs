@@ -1,9 +1,9 @@
 ﻿using RequestsManagementSystem.Core.Entities;
 
-namespace RequestsManagementSystem.Core.Interfaces
+namespace RequestsManagementSystem.Core.Interfaces.IRepositories
 {
-	public interface ITransactionRepository
-	{
+    public interface ITransactionRepository
+    {
         Task<Transaction?> GetTransactionById(int transactionId);
         Task<bool> RemoveTransactionAsync(int transactionId);
         Task<bool> UpdateTransactionAsync(Transaction transaction);
@@ -13,5 +13,5 @@ namespace RequestsManagementSystem.Core.Interfaces
         Task<Transaction?> GetTransactionByIdAsync(int id, string[]? includes = null);
         Task SaveChanges();
         TransactionType? GetTransactionTypeIdByName(string typeName);
-    } 
+    }
 }

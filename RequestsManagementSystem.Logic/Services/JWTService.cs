@@ -1,8 +1,9 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
 using System.Text;
 
 namespace RequestsManagementSystem.Logic.Services
@@ -35,7 +36,7 @@ namespace RequestsManagementSystem.Logic.Services
                 if (expClaim != null)
                 {
                     var expDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim.Value)).UtcDateTime;
-                    if(expDateTime <= DateTime.UtcNow)
+                    if (expDateTime <= DateTime.UtcNow)
                     {
                         return true;
                     }
@@ -77,17 +78,17 @@ namespace RequestsManagementSystem.Logic.Services
         public EmployeePayLoad GetEmployeePayloadFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-                // Read the token
+            // Read the token
             var jwtToken = tokenHandler.ReadJwtToken(token);
 
-                // Extract claims
+            // Extract claims
             var claims = jwtToken.Claims;
             return new EmployeePayLoad
-                {
-                    EmployeeId = int.Parse(claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeId)).Value),
-                    EmployeeName = claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeName)).Value,
-                    EmployeeRole = claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeRole)).Value
-                };
+            {
+                EmployeeId = int.Parse(claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeId)).Value),
+                EmployeeName = claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeName)).Value,
+                EmployeeRole = claims.First(x => x.Type == nameof(EmployeePayLoad.EmployeeRole)).Value
+            };
         }
     }
 }
