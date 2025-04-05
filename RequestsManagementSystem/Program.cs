@@ -5,6 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RequestsManagementSystem.Core.Interfaces.IRepositories;
 using RequestsManagementSystem.Core.Interfaces.IServices;
+using RequestsManagementSystem.Components;
+using RequestsManagementSystem.Client;
+using RequestsManagementSystem.Core.Interfaces;
 using RequestsManagementSystem.Data;
 using RequestsManagementSystem.Data.Repositories;
 using RequestsManagementSystem.Logic.Services;
@@ -109,6 +112,8 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddRazorComponents()
+    .AddInteractiveWebAssemblyComponents();
 
 var app = builder.Build();
 
@@ -119,9 +124,28 @@ var app = builder.Build();
 	app.UseSwaggerUI();
 //}
 
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
 app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies(typeof(RequestsManagementSystem.Client._Imports).Assembly);
 
 app.UseAuthorization();
 
