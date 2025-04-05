@@ -209,7 +209,7 @@ namespace RequestsManagementSystem.Logic.Services
                     CausalBalance = balance.CasualBalance,
                     RegularBalance = balance.RegularBalance,
                 };
-            });
+            }).ToList();
         }
     }
 }

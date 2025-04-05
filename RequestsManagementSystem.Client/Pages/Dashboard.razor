@@ -1,0 +1,140 @@
+﻿@page "/Dashboard"
+@attribute [StreamRendering]
+@inject RequestsManagementSystem.Core.Interfaces.IServices.IAdminService AdminService
+
+<PageTitle>Employee Balances Dashboard</PageTitle>
+
+<h1 class="mb-4">Employee Leave Balances</h1>
+
+<!-- Filter Controls -->
+<div class="filter-controls mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate"
+                  />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate"
+                  />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary me-2" @onclick="LoadData">
+                Filter
+            </button>
+            <button class="btn btn-success" @onclick="ExportToExcel">
+                Export Excel
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading employee data...</p>
+    </div>
+}
+else if (employees == null || !employees.Any())
+{
+    <div class="alert alert-info">
+        No employee data found for the selected period.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Code</th>
+                    <th>Employee Name</th>
+                    <th>Regular Balance</th>
+                    <th>Casual Balance</th>
+                    <th>Total Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employee in employees)
+                {
+                    <tr>
+                        <td>@employee.Code</td>
+                        <td>@employee.Name</td>
+                        <td>@employee.RegularBalance.ToString("0.00") days</td>
+                        <td>@employee.CausalBalance.ToString("0.00") days</td>
+                        <td><strong>@((employee.RegularBalance + employee.CausalBalance).ToString("0.00")) days</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IEnumerable<RequestsManagementSystem.DTOs.ViewModels.EmployeeDashboardDto>? employees;
+    private bool isLoading = false;
+    private string startDateString = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd");
+    private string endDateString = DateTime.Now.ToString("yyyy-MM-dd");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged(); // Force UI update to show loading state
+
+        try
+        {
+            DateOnly? startDate = DateTime.TryParse(startDateString, out var start)
+                ? DateOnly.FromDateTime(start) : null;
+            DateOnly? endDate = DateTime.TryParse(endDateString, out var end)
+                ? DateOnly.FromDateTime(end) : null;
+
+            employees = await AdminService.GetEmployeesDashboard(startDate, endDate);
+        }
+        catch (Exception ex)
+        {
+            // Handle error (you might want to show a toast notification here)
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            DateOnly? startDate = DateTime.TryParse(startDateString, out var start)
+                ? DateOnly.FromDateTime(start) : null;
+            DateOnly? endDate = DateTime.TryParse(endDateString, out var end)
+                ? DateOnly.FromDateTime(end) : null;
+
+            var fileBytes = await AdminService.ExportEmployeesToExcel(startDate, endDate);
+            await DownloadFile("EmployeeBalances.xlsx", fileBytes);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error exporting to Excel: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadFile(string fileName, byte[] content)
+    {
+        var fileStream = new MemoryStream(content);
+        using var streamRef = new DotNetStreamReference(fileStream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
+}

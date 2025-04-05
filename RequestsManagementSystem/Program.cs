@@ -15,7 +15,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionStr = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionStr = builder.Configuration.GetConnectionString("NetworkConnection");
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
 var ValidAudience = builder.Configuration["Jwt:Audience"];
 var ValidIssuer = builder.Configuration["Jwt:Issuer"];

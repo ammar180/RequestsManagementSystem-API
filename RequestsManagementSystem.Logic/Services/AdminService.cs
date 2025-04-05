@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using OfficeOpenXml;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
 using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+using RequestsManagementSystem.DTOs.ViewModels;
 
 namespace RequestsManagementSystem.Logic.Services
 {
@@ -136,8 +138,19 @@ namespace RequestsManagementSystem.Logic.Services
 
             return employees;
         }
-
-
+        public async Task<IEnumerable<EmployeeDashboardDto>> GetEmployeesDashboard(DateOnly? startDate, DateOnly? EndDate)
+        {
+            return (await _employeeService.GetEmployeesToExcelFormat(startDate,EndDate)).Select(x =>
+            {
+                return new EmployeeDashboardDto
+                {
+                    Name = x.Name,
+                    Code = x.Code,
+                    CausalBalance = x.CausalBalance,
+                    RegularBalance = x.RegularBalance,
+                };
+            }).ToList();
+        }
 
     }
 }

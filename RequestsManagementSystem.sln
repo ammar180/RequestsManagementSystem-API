@@ -14,6 +14,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsManagementSystem.Logic", "RequestsManagementSystem.Logic\RequestsManagementSystem.Logic.csproj", "{7BC1CA4D-4642-4952-845A-AB643BD1CADE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsManagementSystem.Client", "RequestsManagementSystem.Client\RequestsManagementSystem.Client.csproj", "{C2E7A83B-FDED-4A0A-884F-08310C98E637}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0480411B-5F6C-490B-A1C9-FAE8D76FFA2A} = {0480411B-5F6C-490B-A1C9-FAE8D76FFA2A}
+		{7BC1CA4D-4642-4952-845A-AB643BD1CADE} = {7BC1CA4D-4642-4952-845A-AB643BD1CADE}
+		{968EDB1E-C97A-4967-8162-483C43CAE17F} = {968EDB1E-C97A-4967-8162-483C43CAE17F}
+		{FC30A64A-A01A-48D2-BFB8-201328ACDEA4} = {FC30A64A-A01A-48D2-BFB8-201328ACDEA4}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

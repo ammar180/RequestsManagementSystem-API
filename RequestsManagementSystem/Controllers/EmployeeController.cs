@@ -125,5 +125,32 @@ namespace RequestsManagementSystem.Controllers
             }
         }
 
+        // Get Employees With Balance 
+        [HttpGet("GetEmployeesWithBalanc")]
+        public async Task<IActionResult> GetEmployeesWithBalance(
+            [FromQuery] string? startDate = null, // Expect date as string, e.g., "2024-01-01"
+            [FromQuery] string? endDate = null)   // Expect date as string, e.g., "2024-12-31"
+        {
+            // Parse the string dates into DateOnly
+            DateOnly? parsedStartDate = null;
+            DateOnly? parsedEndDate = null;
+
+            if (!string.IsNullOrEmpty(startDate) && DateOnly.TryParse(startDate, out var sDate))
+            {
+                parsedStartDate = sDate;
+            }
+
+            if (!string.IsNullOrEmpty(endDate) && DateOnly.TryParse(endDate, out var eDate))
+            {
+                parsedEndDate = eDate;
+            }
+
+            var employees = await _employeeService.GetEmployeesToExcelFormat(parsedStartDate, parsedEndDate);
+            if (employees == null || !employees.Any())
+            {
+                return NotFound("No employees found.");
+            }
+            return Ok(employees);
+        }
     }
 }
