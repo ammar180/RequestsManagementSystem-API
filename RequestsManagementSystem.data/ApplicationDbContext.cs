@@ -7,17 +7,17 @@ namespace RequestsManagementSystem.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly List<TransactionType> _transactionTypes;
         private readonly IConfiguration _configuration;
 
         public ApplicationDbContext(IConfiguration configuration, DbContextOptions options) : base(options)
         {
             _configuration = configuration;
-            _transactionTypes = TransactionTypes.ToList();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.Manager)
                 .WithMany(m => m.ManagerStaff)
@@ -58,28 +58,34 @@ namespace RequestsManagementSystem.Data
             // Load transaction types from appsettings.json
             var transactionTypes = _configuration.GetSection("TransactionTypes").GetChildren();
             modelBuilder.Entity<TransactionType>().HasData(
-                transactionTypes.Select(t => new TransactionType
+                transactionTypes.Select(t =>
                 {
-                    Id = int.Parse(t["Id"]!),
-                    Name = t["Name"]!,
-                    Description = t["Description"]!,
-                    Unit = double.Parse(t["Unit"]!),
-                    Sign = int.Parse(t["Sign"]!)
+                    var tType = new TransactionType
+                    {
+                        Name = t["Name"]!,
+                        Description = t["Description"]!,
+                        Unit = double.Parse(t["Unit"]!),
+                        Sign = int.Parse(t["Sign"]!),
+                        ParentType = t["Parent"] ?? "",
+                    };
+
+                    tType.Id = (int)tType.eType;                    
+                    return tType;
                 }).ToArray()
             );
 
+            modelBuilder.Entity<Transaction>()
+                .Navigation(t => t.Type)
+                .AutoInclude();
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Type)
+                .WithMany()
+                .HasForeignKey(t => t.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Employee>()
-                    .Property(e => e.EmployeeRole)
-                    .HasConversion<short>();
-            modelBuilder.Entity<Transaction>()
-                .Property(p => p.Title)
+                .Property(e => e.EmployeeRole)
                 .HasConversion<short>();
-            modelBuilder.Entity<Transaction>()
-                .Property(p => p.Type)
-                .HasConversion(
-                    type => type.Id,
-                    typeId => _transactionTypes.First(t => t.Id == typeId)
-                );
             modelBuilder.Entity<Transaction>()
                 .Property(p => p.Status)
                 .HasConversion<short>();

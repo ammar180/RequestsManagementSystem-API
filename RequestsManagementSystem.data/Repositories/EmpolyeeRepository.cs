@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
 using RequestsManagementSystem.Data;
 
 public class EmployeeRepository : IEmployeeRepository

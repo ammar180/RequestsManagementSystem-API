@@ -1,6 +1,6 @@
 ﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.Core.Interfaces;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 
 namespace RequestsManagementSystem.Logic.Services
@@ -8,12 +8,14 @@ namespace RequestsManagementSystem.Logic.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly ITransactionService _transactionService;
         private readonly IJWTService _JWT;
 
-        public EmployeeService(IEmployeeRepository employeeRepository, IJWTService jWT)
+        public EmployeeService(IEmployeeRepository employeeRepository, IJWTService jWT, ITransactionService transactionService)
         {
             _employeeRepository = employeeRepository;
             _JWT = jWT;
+            _transactionService = transactionService;
         }
 
         public async Task<EmployeeDto> GetEmployeeDataAsync(int id)
@@ -23,7 +25,7 @@ namespace RequestsManagementSystem.Logic.Services
                     [nameof(Employee.Manager), nameof(Employee.Transactions), nameof(Employee.EmployeeLevel)]
                     ) ?? throw new NullReferenceException("المستخدم غير موجود");
             //var balanceResult = GetEmployeeBalance(employee, p_startDate: new DateOnly(2025, 1, 1), p_endDate: new DateOnly(2025, 6, 6));
-            var balanceResult = GetEmployeeBalance(employee);
+            var balanceResult = _transactionService.GetEmployeeBalance(employee);
             var resut = new EmployeeDto
             {
                 EmployeeId = employee.Id,
@@ -31,12 +33,41 @@ namespace RequestsManagementSystem.Logic.Services
                 EmployeeName = employee.Name,
                 DepartmentName = employee.DepartmentName,
                 DateOfEmployment = employee.DateOfEmployment,
-                ManagerName= employee.Manager?.Name ?? "",
+                ManagerName = employee.Manager?.Name ?? "",
                 RegularLeaveCount = balanceResult.RegularBalance.ToString("0.00"),
                 CasualLeaveCount = balanceResult.CasualBalance.ToString("0.00"),
             };
             return resut;
         }
+        public async Task<EmployeeDto> GetEmployeeByCodeAsync(string code)
+        {
+            // Validate input
+            if (string.IsNullOrEmpty(code))
+                throw new ArgumentException("Employee code cannot be null or empty.", nameof(code));
+
+            // Retrieve employee by code, including related entities
+            var employee = await _employeeRepository.GetEmployeeByCode(code, new[] { "Manager", "Transactions", "EmployeeLevel" })
+                ?? throw new NullReferenceException("المستخدم غير موجود");
+
+            // Calculate employee balance
+            var balanceResult = _transactionService.GetEmployeeBalance(employee);
+
+            // Map employee data to EmployeeDto
+            var result = new EmployeeDto
+            {
+                EmployeeId = employee.Id,
+                EmployeeCode = employee.Code,
+                EmployeeName = employee.Name,
+                DepartmentName = employee.DepartmentName,
+                DateOfEmployment = employee.DateOfEmployment,
+                ManagerName = employee.Manager?.Name ?? string.Empty,
+                RegularLeaveCount = balanceResult.RegularBalance.ToString("0.00"),
+                CasualLeaveCount = balanceResult.CasualBalance.ToString("0.00"),
+            };
+
+            return result;
+        }
+
 
         // Get List of Employees By Department Name
         public async Task<IEnumerable<EmployeeIdAndNameDto>> GetEmployeesAsync(string departmentName)
@@ -72,17 +103,17 @@ namespace RequestsManagementSystem.Logic.Services
             var refreshToken = _JWT.GenerateJwtToken(payload, true);
             return new LoginResultDto
             {
-                token= token,
+                token = token,
                 refreshToken = refreshToken,
                 EmployeeDto = await GetEmployeeDataAsync(employee.Id),
-                Message="تم تسجيل الدخول بنجاح",
-                Status=true
+                Message = "تم تسجيل الدخول بنجاح",
+                Status = true
             };
         }
         public async Task<UpdatePasswordResultDto> UpdatePasswordAsync(UpdatePasswordEmployeeDto EmployeeDto)
         {
             // Validate employee credentials
-            if(EmployeeDto.EmployeeId == 0)
+            if (EmployeeDto.EmployeeId == 0)
             {
                 return new UpdatePasswordResultDto
                 {
@@ -132,7 +163,7 @@ namespace RequestsManagementSystem.Logic.Services
                     message = "كلمة المرور القديمة غير صحيحة",
                 };
             }
-            if(EmployeeDto.Password != EmployeeDto.ConfirmPassword)
+            if (EmployeeDto.Password != EmployeeDto.ConfirmPassword)
             {
                 return new UpdatePasswordResultDto
                 {
@@ -142,7 +173,7 @@ namespace RequestsManagementSystem.Logic.Services
             }
             employee.Password = EmployeeDto.Password;
             bool response = await _employeeRepository.UpdateAsync(employee);
-            if(response == true)
+            if (response == true)
             {
                 return new UpdatePasswordResultDto
                 {
@@ -165,93 +196,12 @@ namespace RequestsManagementSystem.Logic.Services
                 };
             }
         }
-        public (double CasualBalance, double RegularBalance) GetEmployeeBalance(Employee employee, DateOnly? p_startDate = null, DateOnly? p_endDate = null)
-        {
-            // Set default start and end dates if not provided
-            p_startDate ??= new DateOnly(DateTime.Now.Year, 1, 1);
-            p_endDate ??= DateOnly.FromDateTime(DateTime.Now.Date);
-
-
-            var casualBalance = 0.0;
-            var regularBalance = 0.0;
-
-            // get current year leaves
-            casualBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
-            regularBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
-
-           
-           var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), p_startDate.Value, p_endDate.Value);
-            
-            foreach (var (type, totalConsumedDays) in consumedLeaves)
-            {
-                if (!Enum.TryParse(type.Name, false, out ETransactionType typeResuls))
-                    typeResuls = ETransactionType.Other;
-
-                switch (typeResuls)
-                {
-                    case ETransactionType.CasualLeave:
-                        casualBalance += totalConsumedDays; // i.e. current year consumed leave -3
-                        break;
-                    case ETransactionType.AdditionalCasualLeave:
-                        casualBalance += totalConsumedDays; // i.e. previous year balance +3
-                        break;
-                    case ETransactionType.RegularLeave:
-                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -3
-                        break;
-                    case ETransactionType.HalfDay:
-                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.5
-                        break;
-                    case ETransactionType.QuarterDay:
-                        regularBalance += totalConsumedDays; // i.e. current year consumed leave -0.25
-                        break;
-                    case ETransactionType.AdditionalRegularLeave: 
-                        regularBalance += totalConsumedDays; // i.e. previous year balance +3
-                        break;
-                    default:
-                        break;
-                }
-            }            
-            
-            return (casualBalance, regularBalance);
-        }
-        protected IEnumerable<(TransactionType type, double totalConsumedDays)> TotalConsumedLeaves(IQueryable<Transaction> transactions, DateOnly p_startdate, DateOnly p_endDate)
-        {
-            // getting sum of consumed leave in given date range
-            var result = transactions
-                .Where(t => t.Status == TransactionStatus.Approved
-                            // && t.Title == TransactionTitle.Leave
-                            && DateOnly.FromDateTime(t.StartDate) >= p_startdate
-                            && DateOnly.FromDateTime(t.EndDate) <= p_endDate)
-                .Select(t => new { type = t.Type, days = t.Type.Unit * Math.Max(1, (t.EndDate - t.StartDate).Days) * t.Type.Sign })
-                .GroupBy(t => t.type)
-                .Select(g => new { type = g.Key, total = g.Sum(t => t.days) })
-                .ToList();
-                
-            return result.Select(item => (item.type, item.total));
-        }
-        public double CalculateLeaveInMonthRange(double leavesPerMonth, DateOnly employementDate, DateOnly p_startdate, DateOnly p_endDate)
-        {
-            int monthsCount = CalculateMonthCount(employementDate, p_startdate, p_endDate);
-            return leavesPerMonth * monthsCount;
-        }
-        protected int CalculateMonthCount(DateOnly employmentDate, DateOnly startDate, DateOnly endDate)
-        {
-            if (endDate < startDate)
-                return 0;
-            // Ensure startDate is not before employmentDate
-            if (startDate < employmentDate)
-                startDate = employmentDate;
-            // Calculate the total months between startDate and endDate
-            int monthsCount = (endDate.Year - startDate.Year) * 12 + (endDate.Month - startDate.Month);
-            return Math.Max(monthsCount, 0); // Ensure non-negative result
-        }
-
 
         public async Task<IEnumerable<EmployeeExcelDto>> GetEmployeesToExcelFormat(DateOnly? startDate, DateOnly? EndDate)
         {
             return (await _employeeRepository.GetEmployesIncludeTransactionAsync()).Select(x =>
             {
-                var balance = GetEmployeeBalance(x,startDate,EndDate);
+                var balance = _transactionService.GetEmployeeBalance(x, startDate, EndDate);
                 return new EmployeeExcelDto
                 {
                     Name = x.Name,

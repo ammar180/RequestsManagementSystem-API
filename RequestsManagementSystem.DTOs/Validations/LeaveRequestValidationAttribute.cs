@@ -1,6 +1,4 @@
-﻿using RequestsManagementSystem.Core.Entities;
-using RequestsManagementSystem.Core.Enums;
-using RequestsManagementSystem.DTOs.api.TransactionsDtos;
+﻿using RequestsManagementSystem.DTOs.api.TransactionsDtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace RequestsManagementSystem.DTOs.Validations
@@ -11,17 +9,10 @@ namespace RequestsManagementSystem.DTOs.Validations
         {
             if (value is CreateTransactionDto dto)
             {
-                if (!Enum.TryParse(dto.Title, true, out TransactionTitle title))
-                    return new ValidationResult("لا يمكن تحديد عنوان المعاملة.");
-
-                // Check if Type is a valid enum
-                if (!Enum.TryParse(dto.Type, true, out ETransactionType type))
-                    type = ETransactionType.Other;
-
                 if (dto.StartDate > dto.EndDate)
                     return new ValidationResult("لا يمكن تسجيل بطلب تاريخ البداية قبل تاريخ النهاية.");
 
-                if (title == TransactionTitle.Leave)
+                if (dto.Title == "Leave")
                 {
                     if (dto.StartDate.Date < DateTime.Now.Date)
                     {
@@ -30,20 +21,24 @@ namespace RequestsManagementSystem.DTOs.Validations
 
                     var days = (dto.EndDate - dto.StartDate).Days;
 
-                    if (type == ETransactionType.RegularLeave && dto.StartDate.Date < DateTime.Today.Date.AddDays(2))
+                    if (dto.Type == "RegularLeave" && dto.StartDate.Date < DateTime.Today.Date.AddDays(2))
                     {
                         return new ValidationResult("يجب تقديم طلب الإجازة قبل يومين على الأقل من تاريخ الإجازة.");
                     }
 
-                    if (type == ETransactionType.CasualLeave && days > 2)
+                    if (dto.Type == "CasualLeave" && days > 2)
                     {
                         return new ValidationResult("الإجازة العارضه لا تتجاوز يومين.");
                     }
 
-                    if (type == ETransactionType.RegularLeave && days > 16)
+                    if (dto.Type == "RegularLeave" && days > 16)
                     {
                         return new ValidationResult("الإجازة الاعتيادية لا تتجاوز 16 يومًا.");
                     }
+                }
+                else
+                {
+                    return new ValidationResult("لا يمكن تحديد عنوان المعاملة.");
                 }
 
                 return ValidationResult.Success!;

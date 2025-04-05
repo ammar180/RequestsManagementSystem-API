@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
+using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.Components;
 using RequestsManagementSystem.Client;
 using RequestsManagementSystem.Core.Interfaces;
