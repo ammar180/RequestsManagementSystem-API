@@ -114,11 +114,10 @@ namespace RequestsManagementSystem.Logic.Services
                 transactions.Select(t => new GetTransactionByEmployeeDto
                 {
                     TransactionId = t.Id,
-                    Title = t.Type.ParentType,
                     Type = t.Type.Description,
                     Status = t.Status.GetEnumDescription(),
                     DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
-                    SendDate = t.CreationDate.ConvertToArabicDate(),
+                    SendDate = t.CreationDate.ConvertToArabicDate(true),
                     TakenDays = CalculateTakenDays(t),
                 });
             return [.. result];
@@ -135,8 +134,7 @@ namespace RequestsManagementSystem.Logic.Services
 
             return days switch
             {
-                (<= 0) => t.Type.Description,
-                1 => "يوم واحد",
+                (< 1) => "يوم واحد",
                 2 => "يومان",
                 (>= 3 and <= 10) => string.Join(' ', days.ToString(), "أيام"),
                 _ => string.Join(' ', days.ToString(), "يوم"),
@@ -147,29 +145,30 @@ namespace RequestsManagementSystem.Logic.Services
         {
             var transactions = await _transactionRepository.GetStaffTransaction(managerId);
 
-            var result = await Task.WhenAll((IEnumerable<Task<StaffTransactionDto>>)
-                transactions.Select(async t => new StaffTransactionDto
+            var result = transactions
+                .Where(t => t.Status == TransactionStatus.Pending)
+                .Select(t => new StaffTransactionDto
                 {
                     TransactionId = t.Id,
-                    Title = t.Type.ParentType,
+                    Status = t.Status.GetEnumDescription(),
                     Type = t.Type.Description,
-                    DueDate = GetFormattedDueDate(t.StartDate, t.EndDate),
+                    DueDate = GetFormattedDueDate(t.StartDate, t.EndDate, t.Type.EType == ETransactionType.FullDay),
                     SendDate = t.CreationDate.ConvertToArabicDate(),
                     TakenDays = CalculateTakenDays(t),
                     EmployeeName = t.Employee.Name,
                     Seen = t.SeenStatus.HasFlag(TransactionSeenStatus.ManagerSeen),
-                }));
+                });
 
             return [.. result];
         }
 
-        protected string GetFormattedDueDate(DateTime StartDate, DateTime EndDate)
+        protected string GetFormattedDueDate(DateTime StartDate, DateTime EndDate, bool isDatetime = false)
         {
             return (StartDate == EndDate) ?
-                            StartDate.ConvertToArabicDate() :
+                            StartDate.ConvertToArabicDate(isDatetime) :
                             (StartDate.Month == EndDate.Month) ?
-                            $"من {StartDate.ConvertToArabicDate()} إلى {EndDate.Day}" :
-                            $"من {StartDate.ConvertToArabicDate()} الى {EndDate.ConvertToArabicDate()}";
+                            $"من {StartDate.ConvertToArabicDate(isDatetime)} إلى {EndDate.Day}" :
+                            $"من {StartDate.ConvertToArabicDate(isDatetime)} الى {EndDate.ConvertToArabicDate(isDatetime)}";
         }
 
         public async Task SetSeenStatus(int id, string whoSeen)
@@ -218,7 +217,6 @@ namespace RequestsManagementSystem.Logic.Services
                     EmployeeName = transaction.Employee.Name,
                     EmployeeId = transaction.Employee.Id,
                 },
-                Title = transaction.Type.ParentType,
                 Type = transaction.Type.Description,
                 TakenDays = CalculateTakenDays(transaction),
             };
@@ -267,14 +265,14 @@ namespace RequestsManagementSystem.Logic.Services
 
             var leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
 
-            AdditionalLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
+            AdditionalLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.EType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
 
-            ConsumedLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;
+            ConsumedLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.EType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;
 
             RemainingLeaves = (TotalLeaves + AdditionalLeaves + ConsumedLeaves);
 
             var FilteredTransactions = employee.Transactions.
-                                                Where(t => t.Type.eType == type).
+                                                Where(t => t.Type.EType == type).
                                                 Where(t => t.StartDate.Date >= StartDate && t.EndDate <= EndDate).
                                                 Where(t => t.Status == TransactionStatus.Approved).ToList();
 
@@ -312,7 +310,7 @@ namespace RequestsManagementSystem.Logic.Services
 
             foreach (var (type, totalConsumedDays) in consumedLeaves)
             {
-                switch (type.eType)
+                switch (type.EType)
                 {
                     case ETransactionType.CasualLeave:
                         casualBalance += totalConsumedDays; // i.e. current year consumed leave -3

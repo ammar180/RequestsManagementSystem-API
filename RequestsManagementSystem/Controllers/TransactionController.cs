@@ -71,7 +71,7 @@ namespace RequestsManagementSystem.Controllers
 
                 return Ok(transaction);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return BadRequest();
             }

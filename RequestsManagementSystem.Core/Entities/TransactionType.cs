@@ -10,11 +10,9 @@ namespace RequestsManagementSystem.Core.Entities
         public double Unit { get; set; } = 1;
         public int Sign { get; set; } = -1; // or 1 or 0
 
-        private ETransactionType? _eType { get; set; }
-        public ETransactionType eType { get => _eType ??= Enum.TryParse(Name, true, out ETransactionType type) ? type : default!; }
+        public ETransactionType EType => Enum.TryParse(Name, true, out ETransactionType type) ? type : default!;
 
         public string ParentType { get; set; } = string.Empty;
-        private ETransactionType? _EParentType { get; set; }
-        public ETransactionType? EParentType { get => _EParentType ??= Enum.TryParse(ParentType, true, out ETransactionType type) ? type : null; }
+        public ETransactionType? EParentType => Enum.TryParse(ParentType, true, out ETransactionType type) ? type : null;
     }
 }

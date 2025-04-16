@@ -5,7 +5,6 @@ namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
     public class TransactionDto
     {
         public int TransactionId { get; set; }
-        public string Title { get; set; }
         public string Type { get; set; }
         public string StartDate { get; set; }
         public string EndDate { get; set; }

@@ -69,7 +69,7 @@ namespace RequestsManagementSystem.Data
                         ParentType = t["Parent"] ?? "",
                     };
 
-                    tType.Id = (int)tType.eType;                    
+                    tType.Id = (int)tType.EType;                    
                     return tType;
                 }).ToArray()
             );
