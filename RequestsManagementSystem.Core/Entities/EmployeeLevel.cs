@@ -1,4 +1,6 @@
-﻿namespace RequestsManagementSystem.Core.Entities
+﻿using RequestsManagementSystem.Core.Enums;
+
+namespace RequestsManagementSystem.Core.Entities
 {
     public class EmployeeLevel
     {
@@ -10,5 +12,15 @@
         public int CasualLeavePerYear { get; set; }
         public double CasualLeavePerMonth { get => CasualLeavePerYear / 12.0; }
         public int OrderId { get; set; }
+
+        public double GetLeaveDaysPerMonthByType(ETransactionType leaveType)
+        {
+            return leaveType switch
+            {
+                ETransactionType.RegularLeave => RegularLeaveperMonth,
+                ETransactionType.CasualLeave => CasualLeavePerMonth,
+                _ => 0
+            };
+        }
     }
 }

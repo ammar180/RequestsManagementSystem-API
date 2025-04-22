@@ -261,7 +261,7 @@ namespace RequestsManagementSystem.Logic.Services
             EndDate ??= DateTime.Now;
 
             double TotalLeaves, ConsumedLeaves, AdditionalLeaves, RemainingLeaves;
-            TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
+            TotalLeaves = CalculateLeaveInMonthRange(employee.EmployeeLevel.GetLeaveDaysPerMonthByType(type), employee.DateOfEmployment, DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
 
             var leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
 
