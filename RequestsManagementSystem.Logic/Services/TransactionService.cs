@@ -306,8 +306,6 @@ namespace RequestsManagementSystem.Logic.Services
             // get current year leaves
             casualBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.CasualLeavePerMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
             regularBalance += (CalculateLeaveInMonthRange(employee.EmployeeLevel.RegularLeaveperMonth, employee.DateOfEmployment, p_startDate.Value, p_endDate.Value));
-
-
             var consumedLeaves = TotalConsumedLeaves(employee.Transactions.AsQueryable(), p_startDate.Value, p_endDate.Value);
 
             foreach (var (type, totalConsumedDays) in consumedLeaves)

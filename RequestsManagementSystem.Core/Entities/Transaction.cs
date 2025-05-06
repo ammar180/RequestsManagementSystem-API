@@ -12,7 +12,7 @@ namespace RequestsManagementSystem.Core.Entities
         public TransactionType Type { get; set; } = default!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public int SubstituteEmployeeId { get; set; }
+        public int? SubstituteEmployeeId { get; set; }
         public List<string>? Itinerary { get; set; } = default!;
         public DateTime? RespondDate { get; set; } = null;
         public string RespondMessage { get; set; } = string.Empty;
@@ -24,7 +24,7 @@ namespace RequestsManagementSystem.Core.Entities
         public Employee Employee { get; set; } = default!;
 
         [ForeignKey("SubstituteEmployeeId")]
-        public Employee SubstituteEmployee { get; set; } = default!;
+        public Employee? SubstituteEmployee { get; set; }
 
         public TransactionSeenStatus SeenStatus { get; set; } = 0;
     }

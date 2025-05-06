@@ -159,7 +159,7 @@ namespace RequestsManagementSystem.Data.Migrations
                     b.Property<short>("Status")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("SubstituteEmployeeId")
+                    b.Property<int?>("SubstituteEmployeeId")
                         .HasColumnType("int");
 
                     b.Property<int>("TypeId")
@@ -328,8 +328,7 @@ namespace RequestsManagementSystem.Data.Migrations
                     b.HasOne("RequestsManagementSystem.Core.Entities.Employee", "SubstituteEmployee")
                         .WithMany()
                         .HasForeignKey("SubstituteEmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("RequestsManagementSystem.Core.Entities.TransactionType", "Type")
                         .WithMany()

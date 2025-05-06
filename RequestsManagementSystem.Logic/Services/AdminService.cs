@@ -1,24 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using RequestsManagementSystem.Core.Enums;
+using RequestsManagementSystem.Core.Interfaces.IRepositories;
 using RequestsManagementSystem.Core.Interfaces.IServices;
 using RequestsManagementSystem.DTOs.api.EmployeeDtos;
 using RequestsManagementSystem.DTOs.api.TransactionsDtos;
-
+using RequestsManagementSystem.Core.Entities;
 namespace RequestsManagementSystem.Logic.Services
 {
     public class AdminService : IAdminService
     {
         private readonly IEmployeeService _employeeService;
         private readonly ITransactionService _transactionService;
-
-        public AdminService(IEmployeeService employeeService, ITransactionService transactionService)
+        private readonly ITransactionRepository _transactionRepository;
+        private readonly IEmployeeRepository _employeeRepo;
+        public AdminService(IEmployeeService employeeService, ITransactionService transactionService, ITransactionRepository transactionRepository, IEmployeeRepository employeeRepository)
         {
             _employeeService = employeeService;
             _transactionService = transactionService;
+            _transactionRepository = transactionRepository;
+            _employeeRepo = employeeRepository;
         }
-
-
-
 
         public async Task<byte[]> ExportEmployeesToExcel(DateOnly? startDate, DateOnly? EndDate)
         {
@@ -52,7 +55,31 @@ namespace RequestsManagementSystem.Logic.Services
                 return package.GetAsByteArray(); // Return as byte array
             }
         }
+        public async Task<bool> AddAdminTransactionAsync(CreateTransactionDto transactionDto)
+        {
+            try
+            {
+                var transaction = new Transaction
+                {
+                    StartDate = transactionDto.StartDate,
+                    EndDate = transactionDto.EndDate,
+                    SubstituteEmployeeId = transactionDto.SubstituteEmployeeId == 0 ? null : transactionDto.SubstituteEmployeeId,
+                    Itinerary = transactionDto.Itinerary,
+                    EmployeeId = transactionDto.EmployeeId,
+                    Status = TransactionStatus.Approved,
+                };
+                // validate transaction id
+                transaction.Type = _transactionRepository.GetTransactionTypeIdByName(transactionDto.Type) ?? throw new InvalidOperationException("لم نستطيع تحديد نوع الطلب!");
+                // Add the transaction to database via repository
+                await _transactionRepository.AddTransactionAsync(transaction);
 
+                return true;
+            }
+            catch (DbUpdateException)
+            {
+                throw new InvalidOperationException("حدث خطأ أثناء حفظ الطلب، ربما ادخلت موظف غير متاح");
+            }
+        }
         public async Task ImportEmployeesFromExcel(IFormFile excelFile)
         {
             // Read and parse the Excel file to extract employee data
@@ -80,7 +107,7 @@ namespace RequestsManagementSystem.Logic.Services
                         SubstituteEmployeeId = 0, // Assuming no substitute
                         EmployeeId = employee.EmployeeId
                     };
-                    await _transactionService.AddTransactionAsync(regularLeaveTransaction);
+                    await AddAdminTransactionAsync(regularLeaveTransaction);
                 }
 
 
@@ -95,7 +122,7 @@ namespace RequestsManagementSystem.Logic.Services
                         SubstituteEmployeeId = 0, // Assuming no substitute
                         EmployeeId = employee.EmployeeId
                     };
-                    await _transactionService.AddTransactionAsync(casualLeaveTransaction);
+                    await AddAdminTransactionAsync(casualLeaveTransaction);
                 }
             }
         }
@@ -125,8 +152,8 @@ namespace RequestsManagementSystem.Logic.Services
                         {
                             Code = worksheet.Cells[row, 1].Text.Trim(),
                             Name = worksheet.Cells[row, 2].Text.Trim(),
-                            RegularBalance = double.TryParse(worksheet.Cells[row, 3].Text.Trim(), out double regularBalance) ? regularBalance : 0,
-                            CausalBalance = double.TryParse(worksheet.Cells[row, 4].Text.Trim(), out double causalBalance) ? causalBalance : 0
+                            CausalBalance = double.TryParse(worksheet.Cells[row, 3].Text.Trim(), out double causalBalance) ? causalBalance : 0,
+                            RegularBalance = double.TryParse(worksheet.Cells[row, 4].Text.Trim(), out double regularBalance) ? regularBalance : 0,
                         };
 
                         employees.Add(employeeDto);

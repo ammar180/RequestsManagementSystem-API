@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RequestsManagementSystem.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class map_entities : Migration
+    public partial class test : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,7 +39,8 @@ namespace RequestsManagementSystem.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Unit = table.Column<double>(type: "float", nullable: false),
-                    Sign = table.Column<int>(type: "int", nullable: false)
+                    Sign = table.Column<int>(type: "int", nullable: false),
+                    ParentType = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,11 +85,10 @@ namespace RequestsManagementSystem.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<short>(type: "smallint", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
+                    TypeId = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SubstituteEmployeeId = table.Column<int>(type: "int", nullable: false),
+                    SubstituteEmployeeId = table.Column<int>(type: "int", nullable: true),
                     Itinerary = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RespondDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RespondMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -112,6 +112,12 @@ namespace RequestsManagementSystem.Data.Migrations
                         principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Transactions_TransactionTypes_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "TransactionTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -125,19 +131,19 @@ namespace RequestsManagementSystem.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "TransactionTypes",
-                columns: new[] { "Id", "Description", "Name", "Sign", "Unit" },
+                columns: new[] { "Id", "Description", "Name", "ParentType", "Sign", "Unit" },
                 values: new object[,]
                 {
-                    { 1, "إجازة عارضه", "CasualLeave", -1, 1.0 },
-                    { 2, "إجازة اعتيادية", "RegularLeave", -1, 1.0 },
-                    { 3, "نصف يوم", "HalfDay", -1, 0.5 },
-                    { 4, "ربع يوم", "QuarterDay", -1, 0.25 },
-                    { 5, "رصيد اعتيادي إضافي", "AdditionalRegularLeave", 1, 1.0 },
-                    { 6, "رصيد عارضه إضافي", "AdditionalCasualLeave", 1, 1.0 },
-                    { 7, "غياب بأذن", "ExcusedAbsent", -1, 1.0 },
-                    { 8, "غياب بدون بأذن", "UnexcusedAbsent", -1, 1.0 },
-                    { 9, "يوم كامل", "FullDay", 0, 1.0 },
-                    { 10, "يوم جزئي", "PartialDay", 0, 0.5 }
+                    { 1, "إجازة عارضه", "CasualLeave", "", -1, 1.0 },
+                    { 2, "إجازة اعتيادية", "RegularLeave", "", -1, 1.0 },
+                    { 3, "نصف يوم", "HalfDay", "RegularLeave", -1, 0.5 },
+                    { 4, "ربع يوم", "QuarterDay", "RegularLeave", -1, 0.25 },
+                    { 5, "رصيد اعتيادي إضافي", "AdditionalRegularLeave", "RegularLeave", 1, 1.0 },
+                    { 6, "رصيد عارضه إضافي", "AdditionalCasualLeave", "CasualLeave", 1, 1.0 },
+                    { 7, "غياب بأذن", "ExcusedAbsent", "", -1, 1.0 },
+                    { 8, "غياب بدون بأذن", "UnexcusedAbsent", "", -1, 1.0 },
+                    { 9, "يوم كامل", "FullDay", "", 0, 1.0 },
+                    { 10, "يوم جزئي", "PartialDay", "", 0, 0.5 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -165,6 +171,11 @@ namespace RequestsManagementSystem.Data.Migrations
                 name: "IX_Transactions_SubstituteEmployeeId",
                 table: "Transactions",
                 column: "SubstituteEmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_TypeId",
+                table: "Transactions",
+                column: "TypeId");
         }
 
         /// <inheritdoc />
@@ -174,10 +185,10 @@ namespace RequestsManagementSystem.Data.Migrations
                 name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "TransactionTypes");
+                name: "Employees");
 
             migrationBuilder.DropTable(
-                name: "Employees");
+                name: "TransactionTypes");
 
             migrationBuilder.DropTable(
                 name: "EmployeeLevel");
