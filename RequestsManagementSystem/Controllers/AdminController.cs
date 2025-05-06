@@ -16,13 +16,15 @@ namespace RequestsManagementSystem.Controllers
 
         [HttpGet("export-employees")]
         public async Task<IActionResult> ExportEmployeesToExcel(
-            [FromQuery] DateOnly? startDate = null,
-            [FromQuery] DateOnly? endDate = null)
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
         {
             try
             {
-                // Get the Excel file bytes from the service
-                byte[] fileBytes = await _adminService.ExportEmployeesToExcel(startDate, endDate);
+                DateOnly? startDateOnly = startDate.HasValue ? DateOnly.FromDateTime(startDate.Value) : null;
+                DateOnly? endDateOnly = endDate.HasValue ? DateOnly.FromDateTime(endDate.Value) : null;
+
+                byte[] fileBytes = await _adminService.ExportEmployeesToExcel(startDateOnly, endDateOnly);
 
                 // Set file name with current date
                 string fileName = $"Employees_{DateTime.Now:dd/MM/yyyy}.xlsx";
@@ -41,14 +43,14 @@ namespace RequestsManagementSystem.Controllers
             }
         }
         [HttpPost("import-employees")]
-        public async Task<IActionResult> ImportEmployeesFromExcel(IFormFile file)
+        public async Task<IActionResult> ImportEmployeesFromExcel(IFormFile file,bool isCasualImportAllowed = false)
         {
             if (file == null || file.Length <= 0)
                 return BadRequest("Please upload a valid Excel file.");
 
             try
             {
-                await _adminService.ImportEmployeesFromExcel(file);
+                await _adminService.ImportEmployeesFromExcel(file, isCasualImportAllowed);
 
                 // Process the list of employees as needed, e.g., save to the database
 

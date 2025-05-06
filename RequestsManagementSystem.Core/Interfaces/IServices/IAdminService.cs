@@ -6,7 +6,7 @@ namespace RequestsManagementSystem.Core.Interfaces.IServices
     public interface IAdminService
     {
         Task<byte[]> ExportEmployeesToExcel(DateOnly? startDate, DateOnly? EndDate);
-        Task ImportEmployeesFromExcel(IFormFile excelFile);
+        Task ImportEmployeesFromExcel(IFormFile excelFile,bool isCasualImportAllowed);
         Task<List<EmployeeExcelDto>> ExtractEmployeesFromExcelAsync(IFormFile file);
     }
 }

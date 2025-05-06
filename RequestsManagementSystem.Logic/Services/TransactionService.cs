@@ -131,7 +131,7 @@ namespace RequestsManagementSystem.Logic.Services
                 return t.Type.Description;
 
             // check parrtial leave
-            var days = (t.EndDate - t.StartDate).Days;
+            var days = (t.EndDate - t.StartDate).Days + 1;
 
             return days switch
             {
@@ -267,9 +267,9 @@ namespace RequestsManagementSystem.Logic.Services
 
             var leavesGoupedSammary = TotalConsumedLeaves(employee.Transactions.AsQueryable(), DateOnly.FromDateTime(StartDate.Value), DateOnly.FromDateTime(EndDate.Value));
 
-            AdditionalLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
+            AdditionalLeaves = leavesGoupedSammary.FirstOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == 1).totalConsumedDays; // Additional Regular or Casual leaves
 
-            ConsumedLeaves = leavesGoupedSammary.SingleOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;
+            ConsumedLeaves = leavesGoupedSammary.FirstOrDefault(x => (x.type.eType == type || x.type.EParentType == type) && x.type.Sign == -1).totalConsumedDays;
 
             RemainingLeaves = (TotalLeaves + AdditionalLeaves + ConsumedLeaves);
 
@@ -345,7 +345,7 @@ namespace RequestsManagementSystem.Logic.Services
                             // && t.Title == TransactionTitle.Leave
                             && DateOnly.FromDateTime(t.StartDate) >= p_startdate
                             && DateOnly.FromDateTime(t.EndDate) <= p_endDate)
-                .Select(t => new { type = t.Type, days = t.Type.Unit * Math.Max(1, (t.EndDate - t.StartDate).Days) * t.Type.Sign })
+                .Select(t => new { type = t.Type, days = t.Type.Unit * Math.Max(1, ((t.EndDate - t.StartDate).Days)+1) * t.Type.Sign })
                 .GroupBy(t => t.type)
                 .Select(g => new { type = g.Key, total = g.Sum(t => t.days) })
                 .ToList();

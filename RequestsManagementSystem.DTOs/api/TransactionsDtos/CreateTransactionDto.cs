@@ -20,7 +20,7 @@ namespace RequestsManagementSystem.DTOs.api.TransactionsDtos
         public DateTime EndDate { get; set; }
 
         [Required(ErrorMessage = "The Substitute Employee Id field is requird")]
-        public int SubstituteEmployeeId { get; set; }
+        public int? SubstituteEmployeeId { get; set; }
 
 
         public List<string>? Itinerary { get; set; }

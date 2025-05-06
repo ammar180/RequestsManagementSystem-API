@@ -63,7 +63,7 @@ namespace RequestsManagementSystem.Logic.Services
                 {
                     StartDate = transactionDto.StartDate,
                     EndDate = transactionDto.EndDate,
-                    SubstituteEmployeeId = transactionDto.SubstituteEmployeeId == 0 ? null : transactionDto.SubstituteEmployeeId,
+                    SubstituteEmployeeId = transactionDto.SubstituteEmployeeId,
                     Itinerary = transactionDto.Itinerary,
                     EmployeeId = transactionDto.EmployeeId,
                     Status = TransactionStatus.Approved,
@@ -80,7 +80,7 @@ namespace RequestsManagementSystem.Logic.Services
                 throw new InvalidOperationException("حدث خطأ أثناء حفظ الطلب، ربما ادخلت موظف غير متاح");
             }
         }
-        public async Task ImportEmployeesFromExcel(IFormFile excelFile)
+        public async Task ImportEmployeesFromExcel(IFormFile excelFile, bool isCasualImportAllowed)
         {
             // Read and parse the Excel file to extract employee data
             var employees = await ExtractEmployeesFromExcelAsync(excelFile);
@@ -104,25 +104,27 @@ namespace RequestsManagementSystem.Logic.Services
                         Type = "AdditionalRegularLeave",
                         StartDate = DateTime.Now,
                         EndDate = DateTime.Now.AddDays(employeeDto.RegularBalance),
-                        SubstituteEmployeeId = 0, // Assuming no substitute
+                        SubstituteEmployeeId = null, // Assuming no substitute
                         EmployeeId = employee.EmployeeId
                     };
                     await AddAdminTransactionAsync(regularLeaveTransaction);
                 }
 
-
-                if (employeeDto.CausalBalance > 0)
+                if(isCasualImportAllowed)
                 {
-                    var casualLeaveTransaction = new CreateTransactionDto
+                    if (employeeDto.CausalBalance > 0)
                     {
-                        Title = "Leave",
-                        Type = "AdditionalCasualLeave",
-                        StartDate = DateTime.Now,
-                        EndDate = DateTime.Now.AddDays(employeeDto.CausalBalance),
-                        SubstituteEmployeeId = 0, // Assuming no substitute
-                        EmployeeId = employee.EmployeeId
-                    };
-                    await AddAdminTransactionAsync(casualLeaveTransaction);
+                        var casualLeaveTransaction = new CreateTransactionDto
+                        {
+                            Title = "Leave",
+                            Type = "AdditionalCasualLeave",
+                            StartDate = DateTime.Now,
+                            EndDate = DateTime.Now.AddDays(employeeDto.CausalBalance),
+                            SubstituteEmployeeId = null, // Assuming no substitute
+                            EmployeeId = employee.EmployeeId
+                        };
+                        await AddAdminTransactionAsync(casualLeaveTransaction);
+                    }
                 }
             }
         }
