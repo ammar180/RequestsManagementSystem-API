@@ -13,14 +13,11 @@ namespace RequestsManagementSystem.Core.Entities
         public double CasualLeavePerMonth { get => CasualLeavePerYear / 12.0; }
         public int OrderId { get; set; }
 
-        public double GetLeaveDaysPerMonthByType(ETransactionType leaveType)
+        public double GetbyTransactionType(ETransactionType type) => type switch
         {
-            return leaveType switch
-            {
-                ETransactionType.RegularLeave => RegularLeaveperMonth,
-                ETransactionType.CasualLeave => CasualLeavePerMonth,
-                _ => 0
-            };
-        }
+            ETransactionType.CasualLeave => CasualLeavePerMonth,
+            ETransactionType.RegularLeave => RegularLeaveperMonth,
+            _ => 0
+        };
     }
 }
